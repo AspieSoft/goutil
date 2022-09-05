@@ -92,12 +92,15 @@ func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 
 // Returns true if a map contains a key
 func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
-	for i := range search {
+	/* for i := range search {
 		if i == key {
 			return true
 		}
 	}
-	return false
+	return false */
+
+	_, ok := search[key]
+	return ok
 }
 
 // Converts multiple types to a string
@@ -171,7 +174,7 @@ func FormatMemoryUsage(b uint64) float64 {
 
 // Replaces HTML characters with html entities
 // Also prevents &amp;amp; from results
-func EscapeHTML(html []byte) []byte {
+func EscapeHTML[T interface{string|[]byte}](html T) T {
 	html = regex.RepFunc(html, `[<>&]`, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
 			return []byte("&lt;")
@@ -180,11 +183,11 @@ func EscapeHTML(html []byte) []byte {
 		}
 		return []byte("&amp;")
 	})
-	return regex.RepStr(html, `&amp;(amp;)*`, []byte("&amp;"))
+	return regex.RepStr(html, `&amp;(amp;)*`, T("&amp;"))
 }
 
 // Escapes quotes and backslashes for use within HTML quotes 
-func EscapeHTMLArgs(html []byte) []byte {
+func EscapeHTMLArgs[T interface{string|[]byte}](html T) T {
 	return regex.RepFunc(html, `[\\"'\']`, func(data func(int) []byte) []byte {
 		return append([]byte("\\"), data(0)...)
 	})
@@ -214,9 +217,9 @@ func StringifyJSON(data interface{}, ind ...int) ([]byte, error) {
 }
 
 // Converts a json string into a map of strings
-func ParseJson(b []byte) (map[string]interface{}, error) {
+func ParseJson[T interface{string|[]byte}](b T) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
-	err := json.Unmarshal(b, &res)
+	err := json.Unmarshal([]byte(b), &res)
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
@@ -454,6 +457,13 @@ func CleanStr(str string) string {
 	return str
 }
 
+// Sanitizes a []byte to valid UTF-8
+func CleanByte(b []byte) []byte {
+	//todo: sanitize inputs
+	b = bytes.ToValidUTF8(b, []byte{})
+	return b
+}
+
 // Runs CleanStr on an array
 // CleanStr: Sanitizes a string to valid UTF-8
 func CleanArray(data []interface{}) []interface{} {
@@ -507,7 +517,7 @@ func CleanMap(data map[string]interface{}) map[string]interface{} {
 	return cData
 }
 
-// Runs CleanStr on a complex json value
+// Runs CleanStr on a complex json object recursively
 // CleanStr: Sanitizes a string to valid UTF-8
 func CleanJSON(val interface{}) interface{} {
 	t := reflect.TypeOf(val)
@@ -516,9 +526,9 @@ func CleanJSON(val interface{}) interface{} {
 	}else if t == VarType["int"] || t == VarType["float64"] || t == VarType["float32"] || t == VarType["bool"] {
 		return val
 	}else if t == VarType["byteArray"] {
-		return CleanStr(string(val.([]byte)))
+		return CleanByte(val.([]byte))
 	}else if t == VarType["byte"] {
-		return CleanStr(string(val.(byte)))
+		return CleanByte([]byte{val.(byte)})
 	}else if t == VarType["int32"] {
 		return CleanStr(string(val.(int32)))
 	}else if t == VarType["array"] {
