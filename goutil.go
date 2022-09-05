@@ -175,21 +175,21 @@ func FormatMemoryUsage(b uint64) float64 {
 // Replaces HTML characters with html entities
 // Also prevents &amp;amp; from results
 func EscapeHTML[T interface{string|[]byte}](html T) T {
-	html = regex.RepFunc(html, `[<>&]`, func(data func(int) []byte) []byte {
+	html = regex.RepFunc(html, `[<>&]`, func(data func(int) []byte) T {
 		if bytes.Equal(data(0), []byte("<")) {
-			return []byte("&lt;")
+			return T("&lt;")
 		} else if bytes.Equal(data(0), []byte(">")) {
-			return []byte("&gt;")
+			return T("&gt;")
 		}
-		return []byte("&amp;")
+		return T("&amp;")
 	})
 	return regex.RepStr(html, `&amp;(amp;)*`, T("&amp;"))
 }
 
 // Escapes quotes and backslashes for use within HTML quotes 
 func EscapeHTMLArgs[T interface{string|[]byte}](html T) T {
-	return regex.RepFunc(html, `[\\"'\']`, func(data func(int) []byte) []byte {
-		return append([]byte("\\"), data(0)...)
+	return regex.RepFunc(html, `[\\"'\']`, func(data func(int) []byte) T {
+		return T(append([]byte("\\"), data(0)...))
 	})
 }
 
