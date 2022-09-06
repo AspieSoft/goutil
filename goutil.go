@@ -1,6 +1,7 @@
 package goutil
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"crypto/aes"
@@ -10,9 +11,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -636,4 +639,120 @@ func watchDirSub(watcher *fsnotify.Watcher, dir string){
 			}
 		}
 	}
+}
+
+
+// Attempt to install a linux package
+// this method will also resolve the sudo command and ask for a user password if needed
+// this method will not attempt to run an install, if it finds the package is already installed
+func InstallLinuxPkg(pkg []string, man ...string){
+	if !HasLinuxPkg(pkg) {
+		var pkgMan string
+		if len(man) != 0 {
+			pkgMan = man[0]
+		}else{
+			pkgMan = GetLinuxInstaller([]string{`apt-get`, `apt`, `yum`})
+		}
+
+		cmd := exec.Command(`sudo`, append([]string{pkgMan, `install`, `-y`}, pkg...)...)
+
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			return
+		}
+
+		go (func() {
+			out := bufio.NewReader(stdout)
+			for {
+				s, err := out.ReadString('\n')
+				if err == nil {
+					fmt.Println(s)
+				}
+			}
+		})()
+
+		stderr, err := cmd.StderrPipe()
+		if err != nil {
+			return
+		}
+
+		go (func() {
+			out := bufio.NewReader(stderr)
+			for {
+				s, err := out.ReadString('\n')
+				if err == nil {
+					fmt.Println(s)
+				}
+			}
+		})()
+
+		cmd.Run()
+	}
+}
+
+// Attempt to check if a linux package is installed
+func HasLinuxPkg(pkg []string) bool {
+	for _, name := range pkg {
+		hasPackage := false
+		cmd := exec.Command(`dpkg`, `-s`, name)
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			return true
+		}
+		go (func() {
+			out := bufio.NewReader(stdout)
+			for {
+				_, err := out.ReadString('\n')
+				if err == nil {
+					hasPackage = true
+				}
+			}
+		})()
+		for i := 0; i < 3; i++ {
+			cmd.Run()
+			if hasPackage {
+				break
+			}
+		}
+		if !hasPackage {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Attempt to find out what package manager a linux distro is using or has available
+func GetLinuxInstaller(man []string) string {
+	hasInstaller := ""
+
+	for _, m := range man {
+		cmd := exec.Command(`dpkg`, `-s`, m)
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			continue
+		}
+		go (func() {
+			out := bufio.NewReader(stdout)
+			for {
+				_, err := out.Peek(1)
+				if err == nil {
+					hasInstaller = m
+				}
+			}
+		})()
+
+		for i := 0; i < 3; i++ {
+			cmd.Run()
+			if hasInstaller != "" {
+				break
+			}
+		}
+
+		if hasInstaller != "" {
+			break
+		}
+	}
+
+	return hasInstaller
 }
