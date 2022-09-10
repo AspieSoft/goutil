@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AspieSoft/go-regex"
+	"github.com/AspieSoft/go-regex/v2"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -56,7 +56,7 @@ func init(){
 }
 
 // Joins multiple file types with safety from backtracking
-func JoinPath[T interface{string|[]byte}](path ...T) (string, error) {
+func JoinPath(path ...string) (string, error) {
 	resPath, err := filepath.Abs(string(path[0]))
 	if err != nil {
 		return "", err
@@ -107,7 +107,7 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 }
 
 // Converts multiple types to a string
-// accepts: string, byteArray, byte, int32, int, int64, float64, float32
+// accepts: string, []byte, byte, int32, int, int64, float64, float32
 func ToString(res interface{}) string {
 	switch reflect.TypeOf(res) {
 		case VarType["string"]:
@@ -131,8 +131,33 @@ func ToString(res interface{}) string {
 	}
 }
 
+// Converts multiple types to a []byte
+// accepts: string, []byte, byte, int32, int, int64, float64, float32
+func ToByteArray(res interface{}) []byte {
+	switch reflect.TypeOf(res) {
+		case VarType["string"]:
+			return []byte(res.(string))
+		case VarType["byteArray"]:
+			return res.([]byte)
+		case VarType["byte"]:
+			return []byte{res.(byte)}
+		case VarType["int32"]:
+			return []byte{byte(res.(int32))}
+		case VarType["int"]:
+			return []byte(strconv.Itoa(res.(int)))
+		case VarType["int64"]:
+			return []byte(strconv.Itoa(int(res.(int64))))
+		case VarType["float64"]:
+			return []byte(strconv.FormatFloat(res.(float64), 'f', -1, 64))
+		case VarType["float32"]:
+			return []byte(strconv.FormatFloat(float64(res.(float32)), 'f', -1, 32))
+		default:
+			return []byte{}
+	}
+}
+
 // Converts multiple types to an int
-// accepts: int, int32, int64, float64, float32, string, byteArray, byte
+// accepts: int, int32, int64, float64, float32, string, []byte, byte
 func ToInt(res interface{}) int {
 	switch reflect.TypeOf(res) {
 		case VarType["int"]:
@@ -177,22 +202,22 @@ func FormatMemoryUsage(b uint64) float64 {
 
 // Replaces HTML characters with html entities
 // Also prevents &amp;amp; from results
-func EscapeHTML[T interface{string|[]byte}](html T) T {
-	html = regex.RepFunc(html, `[<>&]`, func(data func(int) []byte) T {
+func EscapeHTML(html []byte) []byte {
+	html = regex.RepFuncRef(&html, `[<>&]`, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
-			return T("&lt;")
+			return []byte("&lt;")
 		} else if bytes.Equal(data(0), []byte(">")) {
-			return T("&gt;")
+			return []byte("&gt;")
 		}
-		return T("&amp;")
+		return []byte("&amp;")
 	})
-	return regex.RepStr(html, `&amp;(amp;)*`, T("&amp;"))
+	return regex.RepStrRef(&html, `&amp;(amp;)*`, []byte("&amp;"))
 }
 
 // Escapes quotes and backslashes for use within HTML quotes 
-func EscapeHTMLArgs[T interface{string|[]byte}](html T) T {
-	return regex.RepFunc(html, `[\\"'\']`, func(data func(int) []byte) T {
-		return T(append([]byte("\\"), data(0)...))
+func EscapeHTMLArgs(html []byte) []byte {
+	return regex.RepFuncRef(&html, `[\\"'\']`, func(data func(int) []byte) []byte {
+		return append([]byte("\\"), data(0)...)
 	})
 }
 
@@ -220,9 +245,9 @@ func StringifyJSON(data interface{}, ind ...int) ([]byte, error) {
 }
 
 // Converts a json string into a map of strings
-func ParseJson[T interface{string|[]byte}](b T) (map[string]interface{}, error) {
+func ParseJson(b []byte) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
-	err := json.Unmarshal([]byte(b), &res)
+	err := json.Unmarshal(b, &res)
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
@@ -240,8 +265,16 @@ func DecodeJSON(data io.Reader) (map[string]interface{}, error) {
 	return res, nil
 }
 
+func DeepCopyJson(data map[string]interface{}) (map[string]interface{}, error) {
+	b, err := StringifyJSON(data)
+	if err != nil {
+		return nil, err
+	}
+	return ParseJson(b)
+}
+
 // Gzip compression for a string
-func Compress[T interface{string|[]byte}](msg T) (string, error) {
+func Compress(msg string) (string, error) {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	if _, err := gz.Write([]byte(msg)); err != nil {
@@ -257,8 +290,8 @@ func Compress[T interface{string|[]byte}](msg T) (string, error) {
 }
 
 // Gzip decompression for a string
-func Decompress[T interface{string|[]byte}](str T) (string, error) {
-	data, err := base64.StdEncoding.DecodeString(string(str))
+func Decompress(str string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +309,7 @@ func Decompress[T interface{string|[]byte}](str T) (string, error) {
 
 
 // AES-CFB Encryption
-func Encrypt[T interface{string|[]byte}, J interface{string|[]byte}](text T, key J) (string, error) {
+func Encrypt(text string, key string) (string, error) {
 	plaintext := []byte(text)
 
 	keyHash := sha256.Sum256([]byte(key))
@@ -299,10 +332,10 @@ func Encrypt[T interface{string|[]byte}, J interface{string|[]byte}](text T, key
 }
 
 // AES-CFB Decryption
-func Decrypt[T interface{string|[]byte}, J interface{string|[]byte}](text T, key J) ([]byte, error) {
+func Decrypt(text string, key string) ([]byte, error) {
 	keyHash := sha256.Sum256([]byte(key))
 
-	ciphertext, err := base64.StdEncoding.DecodeString(string(text))
+	ciphertext, err := base64.StdEncoding.DecodeString(text)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -547,10 +580,9 @@ func CleanJSON(val interface{}) interface{} {
 // root: the highest grandparent to check before quitting
 // start: the lowest level to start searching from (if a directory is passed, it will not be included in your search)
 // search: what file you want to search fro
-func GetFileFromParent[T interface{string|[]byte}](root T, start T, search string) (string, bool) {
-	rootB := []byte(root)
-	dir := regex.RepStr([]byte(start), `[\\/][^\\/]*$`, []byte{})
-	if len(dir) == 0 || bytes.Equal(dir, rootB) || !bytes.HasPrefix(dir, rootB) {
+func GetFileFromParent(root string, start string, search string) (string, bool) {
+	dir := string(regex.RepStr([]byte(start), `[\\/][^\\/]*$`, []byte{}))
+	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
 		return "", false
 	}
 
@@ -566,7 +598,7 @@ func GetFileFromParent[T interface{string|[]byte}](root T, start T, search strin
 		}
 	}
 
-	return GetFileFromParent(rootB, dir, search)
+	return GetFileFromParent(root, dir, search)
 }
 
 

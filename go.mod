@@ -1,9 +1,9 @@
-module github.com/AspieSoft/goutil
+module github.com/AspieSoft/goutil/v2
 
 go 1.18
 
 require (
-	github.com/AspieSoft/go-regex v1.4.4
+	github.com/AspieSoft/go-regex/v2 v2.0.2
 	github.com/fsnotify/fsnotify v1.5.4
 )
 
