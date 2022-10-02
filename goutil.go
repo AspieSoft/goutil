@@ -82,6 +82,18 @@ func Contains[T any](search []T, value T) bool {
 	return false
 }
 
+// Returns the index of a value in an array
+// returns -1 and an error if the value is not found
+func IndexOf[T any](search []T, value T) (int, error) {
+	val := ToString(value)
+	for i, v := range search {
+		if ToString(v) == val {
+			return i, nil
+		}
+	}
+	return -1, errors.New("array does not contain value: " + ToString(value))
+}
+
 // Returns true if a map contains a value
 func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 	val := ToString(value)
@@ -91,6 +103,19 @@ func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 		}
 	}
 	return false
+}
+
+// Returns the index of a value in a map
+// returns an error if the value is not found
+func IndexOfMap[T Hashable, J any](search map[T]J, value J) (T, error) {
+	val := ToString(value)
+	for i, v := range search {
+		if ToString(v) == val {
+			return i, nil
+		}
+	}
+	var blk T
+	return blk, errors.New("map does not contain value: " + ToString(value))
 }
 
 // Returns true if a map contains a key
@@ -105,6 +130,24 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 	_, ok := search[key]
 	return ok
 }
+
+
+// Trims repeating adjacent characters and reduces them to one character
+// b: byte array to trim
+// chars: list of bytes to trim repeats of
+func trimRepeats(b []byte, chars []byte) []byte {
+	r := []byte{}
+	for i := 0; i < len(b); i++ {
+		r = append(r, b[i])
+		if Contains(chars, b[i]) {
+			for i+1 < len(b) && b[i+1] == b[i] {
+				i++
+			}
+		}
+	}
+	return r
+}
+
 
 // Converts multiple types to a string
 // accepts: string, []byte, byte, int32, int, int64, float64, float32
@@ -357,19 +400,39 @@ func Decrypt(text string, key string) ([]byte, error) {
 }
 
 
-/* func EncryptFast(msg []byte, key string) (string, error) {
-	bKey := []byte(key)
+const localEncKeyAdd string = "txavzc5CMtpmqERcdTQCbs6cBKAyYc/9hP/s3wLREZBfoiEB8Vc00//i27FQ3twTmW0jAWNiTjXkx1iDAklqCXT1lvyGbSjb2iftyQRLFgM="
+
+// Non Standard AES-CFB Encryption
+// Purposely incompatible with other libraries and programing languages
+// This was made by accident, and this bug is now a feature
+// Notice: This Feature Is Experimental
+func EncryptLocal(text []byte, key string) (string, error) {
+	addKey, err := Decrypt(localEncKeyAdd, "9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx")
+	if err != nil {
+		return "", err
+	}
+
+	bKey := append([]byte(key), addKey...)
+
+	l := len(bKey)
+	for l % 32 != 0 {
+		l--
+	}
+	bKey = bKey[:l]
+
 	var eKey []byte = nil
 	if len(bKey) > 32 {
 		eKey = bKey[32:]
 		bKey = bKey[:32]
 	}
 
-	block, err := aes.NewCipher(bKey)
+	keyHash := sha256.Sum256(bKey)
+
+	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
 		return "", err
 	}
-	b := base64.StdEncoding.EncodeToString(msg)
+	b := base64.StdEncoding.EncodeToString(text)
 	ciphertext := make([]byte, aes.BlockSize+len(b))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
@@ -379,20 +442,22 @@ func Decrypt(text string, key string) ([]byte, error) {
 	cfb.XORKeyStream(ciphertext[aes.BlockSize:], []byte(b))
 
 	if eKey != nil {
-		return encryptByteFast(ciphertext, eKey)
+		return encryptLocal(ciphertext, eKey)
 	}
 
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func encryptByteFast(text []byte, key []byte) (string, error) {
+func encryptLocal(text []byte, bKey []byte) (string, error) {
 	var eKey []byte = nil
-	if len(key) > 32 {
-		eKey = key[32:]
-		key = key[:32]
+	if len(bKey) > 32 {
+		eKey = bKey[32:]
+		bKey = bKey[:32]
 	}
 
-	block, err := aes.NewCipher(key)
+	keyHash := sha256.Sum256(bKey)
+
+	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
 		return "", err
 	}
@@ -407,14 +472,30 @@ func encryptByteFast(text []byte, key []byte) (string, error) {
 	cfb.XORKeyStream(ciphertext[aes.BlockSize:], []byte(b))
 
 	if eKey != nil {
-		return encryptByteFast(ciphertext, eKey)
+		return encryptLocal(ciphertext, eKey)
 	}
 
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func DecryptFast(ciphertext string, key string) ([]byte, error) {
-	bKey := []byte(key)
+// Non Standard AES-CFB Decryption
+// Purposely incompatible with other libraries and programing languages
+// This was made by accident, and this bug is now a feature
+// Notice: This Feature Is Experimental
+func DecryptLocal(ciphertext string, key string) ([]byte, error) {
+	addKey, err := Decrypt(localEncKeyAdd, "9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx")
+	if err != nil {
+		return nil, err
+	}
+
+	bKey := append([]byte(key), addKey...)
+
+	l := len(bKey)
+	for l % 32 != 0 {
+		l--
+	}
+	bKey = bKey[:l]
+
 	var eKey []byte = nil
 	if len(bKey) > 32 {
 		l := len(bKey) - 32
@@ -422,7 +503,9 @@ func DecryptFast(ciphertext string, key string) ([]byte, error) {
 		bKey = bKey[l:]
 	}
 
-	block, err := aes.NewCipher(bKey)
+	keyHash := sha256.Sum256(bKey)
+
+	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -446,21 +529,23 @@ func DecryptFast(ciphertext string, key string) ([]byte, error) {
 	}
 
 	if eKey != nil {
-		return decryptByteFast(data, eKey)
+		return decryptLocal(data, eKey)
 	}
 
 	return data, nil
 }
 
-func decryptByteFast(text []byte, key []byte) ([]byte, error) {
+func decryptLocal(text []byte, bKey []byte) ([]byte, error) {
 	var eKey []byte = nil
-	if len(key) > 32 {
-		l := len(key) - 32
-		eKey = key[:l]
-		key = key[l:]
+	if len(bKey) > 32 {
+		l := len(bKey) - 32
+		eKey = bKey[:l]
+		bKey = bKey[l:]
 	}
 
-	block, err := aes.NewCipher(key)
+	keyHash := sha256.Sum256(bKey)
+
+	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -479,11 +564,11 @@ func decryptByteFast(text []byte, key []byte) ([]byte, error) {
 	}
 
 	if eKey != nil {
-		return decryptByteFast(data, eKey)
+		return decryptLocal(data, eKey)
 	}
 
 	return data, nil
-} */
+}
 
 
 // Sanitizes a string to valid UTF-8

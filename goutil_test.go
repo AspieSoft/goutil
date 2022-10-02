@@ -22,3 +22,19 @@ func Test(t *testing.T){
 		t.Error("[", val, "]\n", errors.New("JoinPath Method Leaked Outsite The Root"))
 	}
 }
+
+func TestEncryptLocal(t *testing.T) {
+	msg := "This is a test"
+	key := "ncu3l89yn298hidh8nxoiauj932oijqkhd8o3nq7i"
+	enc, err := EncryptLocal([]byte(msg), key)
+	if err != nil {
+		t.Error(err)
+	}
+	dec, err := DecryptLocal(enc, key)
+	if err != nil {
+		t.Error(err)
+	}
+	if string(dec) != msg {
+		t.Error("[", msg, "]\n", errors.New("EncryptLocal Did Not Decrypt Correct Output"))
+	}
+}
