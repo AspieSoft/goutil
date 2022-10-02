@@ -135,7 +135,7 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 // Trims repeating adjacent characters and reduces them to one character
 // b: byte array to trim
 // chars: list of bytes to trim repeats of
-func trimRepeats(b []byte, chars []byte) []byte {
+func TrimRepeats(b []byte, chars []byte) []byte {
 	r := []byte{}
 	for i := 0; i < len(b); i++ {
 		r = append(r, b[i])
