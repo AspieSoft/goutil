@@ -55,7 +55,7 @@ func init(){
 	VarType["bool"] = reflect.TypeOf(true)
 }
 
-// Joins multiple file types with safety from backtracking
+// JoinPath joins multiple file types with safety from backtracking
 func JoinPath(path ...string) (string, error) {
 	resPath, err := filepath.Abs(string(path[0]))
 	if err != nil {
@@ -71,7 +71,7 @@ func JoinPath(path ...string) (string, error) {
 	return resPath, nil
 }
 
-// Returns true if an array contains a value
+// Contains returns true if an array contains a value
 func Contains[T any](search []T, value T) bool {
 	val := ToString(value)
 	for _, v := range search {
@@ -82,7 +82,7 @@ func Contains[T any](search []T, value T) bool {
 	return false
 }
 
-// Returns the index of a value in an array
+// IndexOf returns the index of a value in an array
 // returns -1 and an error if the value is not found
 func IndexOf[T any](search []T, value T) (int, error) {
 	val := ToString(value)
@@ -94,7 +94,7 @@ func IndexOf[T any](search []T, value T) (int, error) {
 	return -1, errors.New("array does not contain value: " + ToString(value))
 }
 
-// Returns true if a map contains a value
+// ContainsMap returns true if a map contains a value
 func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 	val := ToString(value)
 	for _, v := range search {
@@ -105,7 +105,7 @@ func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 	return false
 }
 
-// Returns the index of a value in a map
+// IndexOfMap returns the index of a value in a map
 // returns an error if the value is not found
 func IndexOfMap[T Hashable, J any](search map[T]J, value J) (T, error) {
 	val := ToString(value)
@@ -118,7 +118,7 @@ func IndexOfMap[T Hashable, J any](search map[T]J, value J) (T, error) {
 	return blk, errors.New("map does not contain value: " + ToString(value))
 }
 
-// Returns true if a map contains a key
+// ContainsMapKey returns true if a map contains a key
 func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 	/* for i := range search {
 		if i == key {
@@ -132,7 +132,7 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 }
 
 
-// Trims repeating adjacent characters and reduces them to one character
+// TrimRepeats trims repeating adjacent characters and reduces them to one character
 // b: byte array to trim
 // chars: list of bytes to trim repeats of
 func TrimRepeats(b []byte, chars []byte) []byte {
@@ -149,7 +149,7 @@ func TrimRepeats(b []byte, chars []byte) []byte {
 }
 
 
-// Converts multiple types to a string
+// ToString converts multiple types to a string
 // accepts: string, []byte, byte, int32, int, int64, float64, float32
 func ToString(res interface{}) string {
 	switch reflect.TypeOf(res) {
@@ -174,7 +174,7 @@ func ToString(res interface{}) string {
 	}
 }
 
-// Converts multiple types to a []byte
+// ToByteArray converts multiple types to a []byte
 // accepts: string, []byte, byte, int32, int, int64, float64, float32
 func ToByteArray(res interface{}) []byte {
 	switch reflect.TypeOf(res) {
@@ -199,7 +199,7 @@ func ToByteArray(res interface{}) []byte {
 	}
 }
 
-// Converts multiple types to an int
+// ToInt converts multiple types to an int
 // accepts: int, int32, int64, float64, float32, string, []byte, byte
 func ToInt(res interface{}) int {
 	switch reflect.TypeOf(res) {
@@ -233,17 +233,18 @@ func ToInt(res interface{}) int {
 	}
 }
 
+// IsZeroOfUnderlyingType can be used to determine if an interface{} in null or empty
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	// return x == nil || x == reflect.Zero(reflect.TypeOf(x)).Interface()
 	return x == nil || reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
-// Converts bytes to megabytes
+// FormatMemoryUsage converts bytes to megabytes
 func FormatMemoryUsage(b uint64) float64 {
 	return math.Round(float64(b) / 1024 / 1024 * 100) / 100
 }
 
-// Replaces HTML characters with html entities
+// EscapeHTML replaces HTML characters with html entities
 // Also prevents &amp;amp; from results
 func EscapeHTML(html []byte) []byte {
 	html = regex.RepFuncRef(&html, `[<>&]`, func(data func(int) []byte) []byte {
@@ -257,14 +258,14 @@ func EscapeHTML(html []byte) []byte {
 	return regex.RepStrRef(&html, `&amp;(amp;)*`, []byte("&amp;"))
 }
 
-// Escapes quotes and backslashes for use within HTML quotes 
+// EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes 
 func EscapeHTMLArgs(html []byte) []byte {
 	return regex.RepFuncRef(&html, `[\\"'\']`, func(data func(int) []byte) []byte {
 		return append([]byte("\\"), data(0)...)
 	})
 }
 
-// Converts a map or array to a JSON string
+// StringifyJSON converts a map or array to a JSON string
 func StringifyJSON(data interface{}, ind ...int) ([]byte, error) {
 	var res []byte
 	var err error
@@ -287,7 +288,7 @@ func StringifyJSON(data interface{}, ind ...int) ([]byte, error) {
 	return res, nil
 }
 
-// Converts a json string into a map of strings
+// ParseJson converts a json string into a map of strings
 func ParseJson(b []byte) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	err := json.Unmarshal(b, &res)
@@ -297,8 +298,8 @@ func ParseJson(b []byte) (map[string]interface{}, error) {
 	return res, nil
 }
 
-// Useful for decoding a JSON output from the body of an http request
-// goutil.DecodeJSON(r.Body)
+// DecodeJSON is useful for decoding a JSON output from the body of an http request
+// example: goutil.DecodeJSON(r.Body)
 func DecodeJSON(data io.Reader) (map[string]interface{}, error) {
 	var res map[string]interface{}
 	err := json.NewDecoder(data).Decode(&res)
@@ -308,6 +309,7 @@ func DecodeJSON(data io.Reader) (map[string]interface{}, error) {
 	return res, nil
 }
 
+// DeepCopyJson will stringify and parse json to create a deep copy and escape pointers
 func DeepCopyJson(data map[string]interface{}) (map[string]interface{}, error) {
 	b, err := StringifyJSON(data)
 	if err != nil {
@@ -316,7 +318,7 @@ func DeepCopyJson(data map[string]interface{}) (map[string]interface{}, error) {
 	return ParseJson(b)
 }
 
-// Gzip compression for a string
+// Compress is Gzip compression for a string
 func Compress(msg string) (string, error) {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
@@ -332,7 +334,7 @@ func Compress(msg string) (string, error) {
 	return base64.StdEncoding.EncodeToString(b.Bytes()), nil
 }
 
-// Gzip decompression for a string
+// Decompress is Gzip decompression for a string
 func Decompress(str string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
@@ -351,7 +353,7 @@ func Decompress(str string) (string, error) {
 }
 
 
-// AES-CFB Encryption
+// Encrypt is AES-CFB Encryption for a string
 func Encrypt(text string, key string) (string, error) {
 	plaintext := []byte(text)
 
@@ -374,7 +376,7 @@ func Encrypt(text string, key string) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-// AES-CFB Decryption
+// Decrypt is AES-CFB Decryption for a string
 func Decrypt(text string, key string) ([]byte, error) {
 	keyHash := sha256.Sum256([]byte(key))
 
@@ -402,7 +404,7 @@ func Decrypt(text string, key string) ([]byte, error) {
 
 const localEncKeyAdd string = "txavzc5CMtpmqERcdTQCbs6cBKAyYc/9hP/s3wLREZBfoiEB8Vc00//i27FQ3twTmW0jAWNiTjXkx1iDAklqCXT1lvyGbSjb2iftyQRLFgM="
 
-// Non Standard AES-CFB Encryption
+// EncryptLocal is a Non Standard AES-CFB Encryption method
 // Purposely incompatible with other libraries and programing languages
 // This was made by accident, and this bug is now a feature
 // Notice: This Feature Is Experimental
@@ -478,7 +480,7 @@ func encryptLocal(text []byte, bKey []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-// Non Standard AES-CFB Decryption
+// DecryptLocal is a Non Standard AES-CFB Decryption method
 // Purposely incompatible with other libraries and programing languages
 // This was made by accident, and this bug is now a feature
 // Notice: This Feature Is Experimental
@@ -571,21 +573,21 @@ func decryptLocal(text []byte, bKey []byte) ([]byte, error) {
 }
 
 
-// Sanitizes a string to valid UTF-8
+// CleanStr will sanitizes a string to valid UTF-8
 func CleanStr(str string) string {
 	//todo: sanitize inputs
 	str = strings.ToValidUTF8(str, "")
 	return str
 }
 
-// Sanitizes a []byte to valid UTF-8
+// CleanByte will sanitizes a []byte to valid UTF-8
 func CleanByte(b []byte) []byte {
 	//todo: sanitize inputs
 	b = bytes.ToValidUTF8(b, []byte{})
 	return b
 }
 
-// Runs CleanStr on an array
+// CleanArray runs CleanStr on an []interface{}
 // CleanStr: Sanitizes a string to valid UTF-8
 func CleanArray(data []interface{}) []interface{} {
 	cData := []interface{}{}
@@ -610,7 +612,7 @@ func CleanArray(data []interface{}) []interface{} {
 	return cData
 }
 
-// Runs CleanStr on a map[string]
+// CleanMap runs CleanStr on a map[string]interface{}
 // CleanStr: Sanitizes a string to valid UTF-8
 func CleanMap(data map[string]interface{}) map[string]interface{} {
 	cData := map[string]interface{}{}
@@ -638,7 +640,7 @@ func CleanMap(data map[string]interface{}) map[string]interface{} {
 	return cData
 }
 
-// Runs CleanStr on a complex json object recursively
+// CleanJSON runs CleanStr on a complex json object recursively
 // CleanStr: Sanitizes a string to valid UTF-8
 func CleanJSON(val interface{}) interface{} {
 	t := reflect.TypeOf(val)
@@ -661,7 +663,7 @@ func CleanJSON(val interface{}) interface{} {
 }
 
 
-// Checks if the parent (or sub parent) directory of a file contains a specific file or folder
+// GetFileFromParent checks if the parent (or sub parent) directory of a file contains a specific file or folder
 // root: the highest grandparent to check before quitting
 // start: the lowest level to start searching from (if a directory is passed, it will not be included in your search)
 // search: what file you want to search fro
@@ -695,7 +697,7 @@ type Watcher struct {
 	Any func(path string, op string)
 }
 
-// Watch the files in a directory and its subdirectories for changes
+// WatchDir watches the files in a directory and its subdirectories for changes
 func WatchDir(root string, cb *Watcher) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -759,7 +761,7 @@ func watchDirSub(watcher *fsnotify.Watcher, dir string){
 }
 
 
-// Attempt to install a linux package
+// InstallLinuxPkg attempts to install a linux package
 // this method will also resolve the sudo command and ask for a user password if needed
 // this method will not attempt to run an install, if it finds the package is already installed
 func InstallLinuxPkg(pkg []string, man ...string){
@@ -807,7 +809,7 @@ func InstallLinuxPkg(pkg []string, man ...string){
 	}
 }
 
-// Attempt to check if a linux package is installed
+// HasLinuxPkg attempt to check if a linux package is installed
 func HasLinuxPkg(pkg []string) bool {
 	for _, name := range pkg {
 		hasPackage := false
@@ -839,7 +841,7 @@ func HasLinuxPkg(pkg []string) bool {
 	return true
 }
 
-// Attempt to find out what package manager a linux distro is using or has available
+// GetLinuxInstaller attempt to find out what package manager a linux distro is using or has available
 func GetLinuxInstaller(man []string) string {
 	hasInstaller := ""
 
