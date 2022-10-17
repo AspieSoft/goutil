@@ -23,9 +23,32 @@ func Test(t *testing.T){
 	}
 }
 
+func TestEncrypt(t *testing.T){
+	msg := "This is a test"
+	enc, err := Encrypt([]byte(msg), []byte("MyKey123"))
+	if err != nil {
+		t.Error(err)
+	}
+	dec, err := Decrypt(enc, []byte("MyKey123"))
+	if err != nil {
+		t.Error(err)
+	}
+	if string(dec) != msg {
+		t.Error("[", msg, "]\n", errors.New("Decrypt did not return the correct output"))
+	}
+
+	hash, err := NewHash([]byte(msg), []byte("MyKey123"))
+	if err != nil {
+		t.Error(err)
+	}
+	if !CompareHash([]byte(msg), hash, []byte("MyKey123")) {
+		t.Error("[", msg, "]\n", errors.New("CompareHash did not return true"))
+	}
+}
+
 func TestEncryptLocal(t *testing.T) {
 	msg := "This is a test"
-	key := "ncu3l89yn298hidh8nxoiauj932oijqkhd8o3nq7i"
+	key := []byte("ncu3l89yn298hidh8nxoiauj932oijqkhd8o3nq7i")
 	enc, err := EncryptLocal([]byte(msg), key)
 	if err != nil {
 		t.Error(err)
@@ -35,6 +58,6 @@ func TestEncryptLocal(t *testing.T) {
 		t.Error(err)
 	}
 	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("EncryptLocal Did Not Decrypt Correct Output"))
+		t.Error("[", msg, "]\n", errors.New("DecryptLocal did not return the correct output"))
 	}
 }

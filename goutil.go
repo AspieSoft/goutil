@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -83,6 +84,7 @@ func Contains[T any](search []T, value T) bool {
 }
 
 // IndexOf returns the index of a value in an array
+//
 // returns -1 and an error if the value is not found
 func IndexOf[T any](search []T, value T) (int, error) {
 	val := ToString(value)
@@ -106,6 +108,7 @@ func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 }
 
 // IndexOfMap returns the index of a value in a map
+//
 // returns an error if the value is not found
 func IndexOfMap[T Hashable, J any](search map[T]J, value J) (T, error) {
 	val := ToString(value)
@@ -133,8 +136,10 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 
 
 // TrimRepeats trims repeating adjacent characters and reduces them to one character
-// b: byte array to trim
-// chars: list of bytes to trim repeats of
+//
+// @b: byte array to trim
+//
+// @chars: list of bytes to trim repeats of
 func TrimRepeats(b []byte, chars []byte) []byte {
 	r := []byte{}
 	for i := 0; i < len(b); i++ {
@@ -150,6 +155,7 @@ func TrimRepeats(b []byte, chars []byte) []byte {
 
 
 // ToString converts multiple types to a string
+//
 // accepts: string, []byte, byte, int32, int, int64, float64, float32
 func ToString(res interface{}) string {
 	switch reflect.TypeOf(res) {
@@ -175,6 +181,7 @@ func ToString(res interface{}) string {
 }
 
 // ToByteArray converts multiple types to a []byte
+//
 // accepts: string, []byte, byte, int32, int, int64, float64, float32
 func ToByteArray(res interface{}) []byte {
 	switch reflect.TypeOf(res) {
@@ -200,6 +207,7 @@ func ToByteArray(res interface{}) []byte {
 }
 
 // ToInt converts multiple types to an int
+//
 // accepts: int, int32, int64, float64, float32, string, []byte, byte
 func ToInt(res interface{}) int {
 	switch reflect.TypeOf(res) {
@@ -245,7 +253,8 @@ func FormatMemoryUsage(b uint64) float64 {
 }
 
 // EscapeHTML replaces HTML characters with html entities
-// Also prevents &amp;amp; from results
+//
+// Also prevents and removes &amp;amp; from results
 func EscapeHTML(html []byte) []byte {
 	html = regex.RepFuncRef(&html, `[<>&]`, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
@@ -299,6 +308,7 @@ func ParseJson(b []byte) (map[string]interface{}, error) {
 }
 
 // DecodeJSON is useful for decoding a JSON output from the body of an http request
+//
 // example: goutil.DecodeJSON(r.Body)
 func DecodeJSON(data io.Reader) (map[string]interface{}, error) {
 	var res map[string]interface{}
@@ -353,34 +363,36 @@ func Decompress(str string) (string, error) {
 }
 
 
-// Encrypt is AES-CFB Encryption for a string
-func Encrypt(text string, key string) (string, error) {
-	plaintext := []byte(text)
-
-	keyHash := sha256.Sum256([]byte(key))
+// Encrypt runs AES-CFB Encryption
+//
+// the key is also hashed with SHA256
+func Encrypt(text []byte, key []byte) ([]byte, error) {
+	keyHash := sha256.Sum256(key)
 
 	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	ciphertext := make([]byte, aes.BlockSize+len(text))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return "", nil
+		return []byte{}, err
 	}
 
 	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], text)
 
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
+	return []byte(base64.StdEncoding.EncodeToString(ciphertext)), nil
 }
 
-// Decrypt is AES-CFB Decryption for a string
-func Decrypt(text string, key string) ([]byte, error) {
-	keyHash := sha256.Sum256([]byte(key))
+// Decrypt runs AES-CFB Decryption
+//
+// the key is also hashed with SHA256
+func Decrypt(text []byte, key []byte) ([]byte, error) {
+	keyHash := sha256.Sum256(key)
 
-	ciphertext, err := base64.StdEncoding.DecodeString(text)
+	ciphertext, err := base64.StdEncoding.DecodeString(string(text))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -401,20 +413,59 @@ func Decrypt(text string, key string) ([]byte, error) {
 	return ciphertext, nil
 }
 
+// NewHash runs a key based HMAC hash using SHA256
+//
+// the key is also hashed with SHA256
+func NewHash(text []byte, key []byte) ([]byte, error) {
+	keyHash := sha256.Sum256(key)
+
+	mac := hmac.New(sha256.New, keyHash[:])
+
+	_, err := mac.Write(text)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return mac.Sum(nil), nil
+}
+
+// CompareHash compares a key based hash created by the `NewHash` func to another text, to safely check for equality
+//
+// uses HMAC with SHA256
+//
+// the key is also hashed with SHA256
+//
+// @compare should be a valid hash
+func CompareHash(text []byte, compare []byte, key []byte) bool {
+	keyHash := sha256.Sum256(key)
+
+	mac := hmac.New(sha256.New, keyHash[:])
+
+	_, err := mac.Write(text)
+	if err != nil {
+		return false
+	}
+
+	return hmac.Equal(compare, mac.Sum(nil))
+}
+
 
 const localEncKeyAdd string = "txavzc5CMtpmqERcdTQCbs6cBKAyYc/9hP/s3wLREZBfoiEB8Vc00//i27FQ3twTmW0jAWNiTjXkx1iDAklqCXT1lvyGbSjb2iftyQRLFgM="
 
 // EncryptLocal is a Non Standard AES-CFB Encryption method
-// Purposely incompatible with other libraries and programing languages
-// This was made by accident, and this bug is now a feature
-// Notice: This Feature Is Experimental
-func EncryptLocal(text []byte, key string) (string, error) {
-	addKey, err := Decrypt(localEncKeyAdd, "9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx")
+//
+// Notice This Feature Is Experimental
+//
+// purposely incompatible with other libraries and programing languages
+//
+// this was made by accident, and this bug is now a feature
+func EncryptLocal(text []byte, key []byte) ([]byte, error) {
+	addKey, err := Decrypt([]byte(localEncKeyAdd), []byte("9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx"))
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
-	bKey := append([]byte(key), addKey...)
+	bKey := append(key, addKey...)
 
 	l := len(bKey)
 	for l % 32 != 0 {
@@ -432,13 +483,13 @@ func EncryptLocal(text []byte, key string) (string, error) {
 
 	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	b := base64.StdEncoding.EncodeToString(text)
 	ciphertext := make([]byte, aes.BlockSize+len(b))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	cfb := cipher.NewCFBEncrypter(block, iv)
 	cfb.XORKeyStream(ciphertext[aes.BlockSize:], []byte(b))
@@ -447,10 +498,10 @@ func EncryptLocal(text []byte, key string) (string, error) {
 		return encryptLocal(ciphertext, eKey)
 	}
 
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
+	return []byte(base64.StdEncoding.EncodeToString(ciphertext)), nil
 }
 
-func encryptLocal(text []byte, bKey []byte) (string, error) {
+func encryptLocal(text []byte, bKey []byte) ([]byte, error) {
 	var eKey []byte = nil
 	if len(bKey) > 32 {
 		eKey = bKey[32:]
@@ -461,14 +512,14 @@ func encryptLocal(text []byte, bKey []byte) (string, error) {
 
 	block, err := aes.NewCipher(keyHash[:])
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
 	b := base64.StdEncoding.EncodeToString(text)
 	ciphertext := make([]byte, aes.BlockSize+len(b))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	cfb := cipher.NewCFBEncrypter(block, iv)
 	cfb.XORKeyStream(ciphertext[aes.BlockSize:], []byte(b))
@@ -477,20 +528,23 @@ func encryptLocal(text []byte, bKey []byte) (string, error) {
 		return encryptLocal(ciphertext, eKey)
 	}
 
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
+	return []byte(base64.StdEncoding.EncodeToString(ciphertext)), nil
 }
 
 // DecryptLocal is a Non Standard AES-CFB Decryption method
-// Purposely incompatible with other libraries and programing languages
-// This was made by accident, and this bug is now a feature
-// Notice: This Feature Is Experimental
-func DecryptLocal(ciphertext string, key string) ([]byte, error) {
-	addKey, err := Decrypt(localEncKeyAdd, "9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx")
+//
+// Notice This Feature Is Experimental
+//
+// purposely incompatible with other libraries and programing languages
+//
+// this was made by accident, and this bug is now a feature
+func DecryptLocal(ciphertext []byte, key []byte) ([]byte, error) {
+	addKey, err := Decrypt([]byte(localEncKeyAdd), []byte("9EruID5odGcw9hSWSG19xPrx4hbG8ggbjYNdQmibfHAsnm2Y3oYUtGXbXfgXKmtx"))
 	if err != nil {
 		return nil, err
 	}
 
-	bKey := append([]byte(key), addKey...)
+	bKey := append(key, addKey...)
 
 	l := len(bKey)
 	for l % 32 != 0 {
@@ -512,7 +566,7 @@ func DecryptLocal(ciphertext string, key string) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err := base64.StdEncoding.DecodeString(ciphertext)
+	text, err := base64.StdEncoding.DecodeString(string(ciphertext))
 	if err != nil {
 		return nil, err
 	}
@@ -587,8 +641,9 @@ func CleanByte(b []byte) []byte {
 	return b
 }
 
-// CleanArray runs CleanStr on an []interface{}
-// CleanStr: Sanitizes a string to valid UTF-8
+// CleanArray runs `CleanStr` on an []interface{}
+//
+// CleanStr sanitizes a string to valid UTF-8
 func CleanArray(data []interface{}) []interface{} {
 	cData := []interface{}{}
 	for key, val := range data {
@@ -612,8 +667,9 @@ func CleanArray(data []interface{}) []interface{} {
 	return cData
 }
 
-// CleanMap runs CleanStr on a map[string]interface{}
-// CleanStr: Sanitizes a string to valid UTF-8
+// CleanMap runs `CleanStr` on a map[string]interface{}
+//
+// CleanStr sanitizes a string to valid UTF-8
 func CleanMap(data map[string]interface{}) map[string]interface{} {
 	cData := map[string]interface{}{}
 	for key, val := range data {
@@ -640,8 +696,9 @@ func CleanMap(data map[string]interface{}) map[string]interface{} {
 	return cData
 }
 
-// CleanJSON runs CleanStr on a complex json object recursively
-// CleanStr: Sanitizes a string to valid UTF-8
+// CleanJSON runs `CleanStr` on a complex json object recursively
+//
+// CleanStr sanitizes a string to valid UTF-8
 func CleanJSON(val interface{}) interface{} {
 	t := reflect.TypeOf(val)
 	if t == VarType["string"] {
@@ -664,9 +721,12 @@ func CleanJSON(val interface{}) interface{} {
 
 
 // GetFileFromParent checks if the parent (or sub parent) directory of a file contains a specific file or folder
-// root: the highest grandparent to check before quitting
-// start: the lowest level to start searching from (if a directory is passed, it will not be included in your search)
-// search: what file you want to search fro
+//
+// @root is the highest grandparent to check before quitting
+//
+// @start is the lowest level to start searching from (if a directory is passed, it will not be included in your search)
+//
+// @search is what file you want to search fro
 func GetFileFromParent(root string, start string, search string) (string, bool) {
 	dir := string(regex.RepStr([]byte(start), `[\\/][^\\/]*$`, []byte{}))
 	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
@@ -689,7 +749,7 @@ func GetFileFromParent(root string, start string, search string) (string, bool) 
 }
 
 
-// A watcher instance for the WatchDir function
+// A watcher instance for the `WatchDir` func
 type Watcher struct {
 	FileChange func(path string, op string)
 	DirAdd func(path string, op string) (addWatcher bool)
@@ -762,7 +822,9 @@ func watchDirSub(watcher *fsnotify.Watcher, dir string){
 
 
 // InstallLinuxPkg attempts to install a linux package
+//
 // this method will also resolve the sudo command and ask for a user password if needed
+//
 // this method will not attempt to run an install, if it finds the package is already installed
 func InstallLinuxPkg(pkg []string, man ...string){
 	if !HasLinuxPkg(pkg) {
