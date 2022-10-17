@@ -329,37 +329,37 @@ func DeepCopyJson(data map[string]interface{}) (map[string]interface{}, error) {
 }
 
 // Compress is Gzip compression for a string
-func Compress(msg string) (string, error) {
+func Compress(msg []byte) ([]byte, error) {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	if _, err := gz.Write([]byte(msg)); err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	if err := gz.Flush(); err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	if err := gz.Close(); err != nil {
-		return "", err
+		return []byte{}, err
 	}
-	return base64.StdEncoding.EncodeToString(b.Bytes()), nil
+	return []byte(base64.StdEncoding.EncodeToString(b.Bytes())), nil
 }
 
 // Decompress is Gzip decompression for a string
-func Decompress(str string) (string, error) {
-	data, err := base64.StdEncoding.DecodeString(str)
+func Decompress(str []byte) ([]byte, error) {
+	data, err := base64.StdEncoding.DecodeString(string(str))
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	rdata := bytes.NewReader(data)
 	r, err := gzip.NewReader(rdata)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 	s, err := io.ReadAll(r)
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
-	return string(s), nil
+	return s, nil
 }
 
 

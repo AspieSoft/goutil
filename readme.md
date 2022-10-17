@@ -10,7 +10,7 @@ This module simply adds a variety of useful functions in an easy to use way.
 
 ```shell script
 
-  go get github.com/AspieSoft/goutil
+  go get github.com/AspieSoft/goutil/v3
 
 ```
 
@@ -19,7 +19,7 @@ This module simply adds a variety of useful functions in an easy to use way.
 ```go
 
 import (
-  "github.com/AspieSoft/goutil"
+  "github.com/AspieSoft/goutil/v3"
 )
 
 func main(){
@@ -28,11 +28,11 @@ func main(){
   goutil.Contains([]any, any) // checks if an array contains a value
 
   // simple AES-CFB Encryption
-  encrypted := goutil.Encrypt("my message", "password")
-  goutil.Decrypt(encrypted, "password")
+  encrypted := goutil.Encrypt([]byte("my message"), []byte("password"))
+  goutil.Decrypt(encrypted, []byte("password"))
 
   // simple gzip compression for strings
-  compressed := goutil.Compress("my long string")
+  compressed := goutil.Compress([]byte("my long string"))
   goutil.Decompress(compressed)
 
   // watch a directory recursively
