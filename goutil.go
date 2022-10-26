@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AspieSoft/go-regex/v2"
+	"github.com/AspieSoft/go-regex/v3"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -252,11 +252,14 @@ func FormatMemoryUsage(b uint64) float64 {
 	return math.Round(float64(b) / 1024 / 1024 * 100) / 100
 }
 
+var regEscHTML *regex.Regexp = regex.Compile(`[<>&]`)
+var regEscFixAmp *regex.Regexp = regex.Compile(`&amp;(amp;)*`)
+
 // EscapeHTML replaces HTML characters with html entities
 //
 // Also prevents and removes &amp;amp; from results
 func EscapeHTML(html []byte) []byte {
-	html = regex.RepFuncRef(&html, `[<>&]`, func(data func(int) []byte) []byte {
+	html = regex.RepFuncRef(&html, regEscHTML, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
 			return []byte("&lt;")
 		} else if bytes.Equal(data(0), []byte(">")) {
@@ -264,12 +267,14 @@ func EscapeHTML(html []byte) []byte {
 		}
 		return []byte("&amp;")
 	})
-	return regex.RepStrRef(&html, `&amp;(amp;)*`, []byte("&amp;"))
+	return regex.RepStrRef(&html, regEscFixAmp, []byte("&amp;"))
 }
+
+var regEscHTMLArgs *regex.Regexp = regex.Compile(`[\\"'\']`)
 
 // EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes 
 func EscapeHTMLArgs(html []byte) []byte {
-	return regex.RepFuncRef(&html, `[\\"'\']`, func(data func(int) []byte) []byte {
+	return regex.RepFuncRef(&html, regEscHTMLArgs, func(data func(int) []byte) []byte {
 		return append([]byte("\\"), data(0)...)
 	})
 }
@@ -719,6 +724,7 @@ func CleanJSON(val interface{}) interface{} {
 	return nil
 }
 
+var regDirEndSlash *regex.Regexp = regex.Compile(`[\\/][^\\/]*$`)
 
 // GetFileFromParent checks if the parent (or sub parent) directory of a file contains a specific file or folder
 //
@@ -728,7 +734,7 @@ func CleanJSON(val interface{}) interface{} {
 //
 // @search is what file you want to search fro
 func GetFileFromParent(root string, start string, search string) (string, bool) {
-	dir := string(regex.RepStr([]byte(start), `[\\/][^\\/]*$`, []byte{}))
+	dir := string(regex.RepStr([]byte(start), regDirEndSlash, []byte{}))
 	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
 		return "", false
 	}
