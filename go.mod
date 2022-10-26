@@ -3,7 +3,7 @@ module github.com/AspieSoft/goutil/v3
 go 1.18
 
 require (
-	github.com/AspieSoft/go-regex/v3 v3.0.1
+	github.com/AspieSoft/go-regex/v3 v3.0.2
 	github.com/fsnotify/fsnotify v1.6.0
 )
 
