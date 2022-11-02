@@ -21,6 +21,10 @@ func Test(t *testing.T){
 	if val, err := JoinPath("test", "../out/of/root"); err == nil {
 		t.Error("[", val, "]\n", errors.New("JoinPath Method Leaked Outsite The Root"))
 	}
+
+	if args := MapArgs([]string{"arg1", "--key=value", "--bool", "-flags"}); args["0"] != "arg1" || args["bool"] != "true" || args["key"] != "value" || args["f"] != "true" || args["l"] != "true" || args["s"] != "true" {
+		t.Error(args, "\n", errors.New("MapArgs Produced The Wrong Output"))
+	}
 }
 
 func TestEncrypt(t *testing.T){
