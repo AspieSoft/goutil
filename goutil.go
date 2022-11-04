@@ -355,6 +355,93 @@ func MapArgs(args ...[]string) map[string]string {
 	return argMap
 }
 
+// MapArgs is just like MapArgs, but it excepts and outputs using []byte instead of string
+func MapArgsByte(args ...[][]byte) map[string][]byte {
+	if len(args) == 0 {
+		args = append(args, [][]byte{})
+		for _, arg := range os.Args[1:] {
+			args[0] = append(args[0], []byte(arg))
+		}
+	}
+
+	argMap := map[string][]byte{}
+	i := 0
+
+	for _, argList := range args {
+		for _, arg := range argList {
+			if bytes.HasPrefix(arg, []byte("--")) {
+				arg = arg[2:]
+				if bytes.ContainsRune(arg, '=') {
+					data := bytes.SplitN(arg, []byte{'='}, 2)
+					if _, err := strconv.Atoi(string(data[0])); err == nil {
+						if argMap["-"+string(data[0])] == nil {
+							argMap["-"+string(data[0])] = data[1]
+						}
+					}else{
+						if argMap[string(data[0])] == nil {
+							argMap[string(data[0])] = data[1]
+						}
+					}
+				}else{
+					if _, err := strconv.Atoi(string(arg)); err == nil {
+						if argMap["-"+string(arg)] == nil {
+							argMap["-"+string(arg)] = []byte("true")
+						}
+					}else{
+						if argMap[string(arg)] == nil {
+							argMap[string(arg)] = []byte("true")
+						}
+					}
+				}
+			}else if bytes.HasPrefix(arg, []byte{'-'}) {
+				arg = arg[1:]
+				if regex.Match(arg, regex.Compile(`^[A-Za-z0-9]+$`)) {
+					flags := bytes.Split(arg, []byte{})
+					for _, flag := range flags {
+						if _, err := strconv.Atoi(string(flag)); err == nil {
+							if argMap["-"+string(flag)] == nil {
+								argMap["-"+string(flag)] = []byte("true")
+							}
+						}else{
+							if argMap[string(flag)] == nil {
+								argMap[string(flag)] = []byte("true")
+							}
+						}
+					}
+				}else{
+					if bytes.ContainsRune(arg, '=') {
+						data := bytes.SplitN(arg, []byte{'='}, 2)
+						if _, err := strconv.Atoi(string(data[0])); err == nil {
+							if argMap["-"+string(data[0])] == nil {
+								argMap["-"+string(data[0])] = data[1]
+							}
+						}else{
+							if argMap[string(data[0])] == nil {
+								argMap[string(data[0])] = data[1]
+							}
+						}
+					}else{
+						if _, err := strconv.Atoi(string(arg)); err == nil {
+							if argMap["-"+string(arg)] == nil {
+								argMap["-"+string(arg)] = []byte("true")
+							}
+						}else{
+							if argMap[string(arg)] == nil {
+								argMap[string(arg)] = []byte("true")
+							}
+						}
+					}
+				}
+			}else{
+				argMap[strconv.Itoa(i)] = arg
+				i++
+			}
+		}
+	}
+
+	return argMap
+}
+
 var regEscHTML *regex.Regexp = regex.Compile(`[<>&]`)
 var regEscFixAmp *regex.Regexp = regex.Compile(`&amp;(amp;)*`)
 
