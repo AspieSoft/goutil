@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AspieSoft/go-regex/v3"
+	"github.com/AspieSoft/go-regex/v4"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -253,6 +253,9 @@ func FormatMemoryUsage(b uint64) float64 {
 }
 
 
+var regIsAlphaNumeric *regex.Regexp = regex.Compile(`^[A-Za-z0-9]+$`)
+
+
 // MapArgs will convert a bash argument array ([]string) into a map (map[string]string)
 //
 // When @args is left blank with no values, it will default to os.Args[1:]
@@ -308,7 +311,7 @@ func MapArgs(args ...[]string) map[string]string {
 				}
 			}else if strings.HasPrefix(arg, "-") {
 				arg = arg[1:]
-				if regex.Match([]byte(arg), regex.Compile(`^[A-Za-z0-9]+$`)) {
+				if regIsAlphaNumeric.Match([]byte(arg)) {
 					flags := strings.Split(arg, "")
 					for _, flag := range flags {
 						if _, err := strconv.Atoi(flag); err == nil {
@@ -395,7 +398,7 @@ func MapArgsByte(args ...[][]byte) map[string][]byte {
 				}
 			}else if bytes.HasPrefix(arg, []byte{'-'}) {
 				arg = arg[1:]
-				if regex.Match(arg, regex.Compile(`^[A-Za-z0-9]+$`)) {
+				if regIsAlphaNumeric.Match(arg) {
 					flags := bytes.Split(arg, []byte{})
 					for _, flag := range flags {
 						if _, err := strconv.Atoi(string(flag)); err == nil {
@@ -449,7 +452,7 @@ var regEscFixAmp *regex.Regexp = regex.Compile(`&amp;(amp;)*`)
 //
 // Also prevents and removes &amp;amp; from results
 func EscapeHTML(html []byte) []byte {
-	html = regex.RepFuncRef(&html, regEscHTML, func(data func(int) []byte) []byte {
+	html = regEscHTML.RepFuncRef(&html, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
 			return []byte("&lt;")
 		} else if bytes.Equal(data(0), []byte(">")) {
@@ -457,14 +460,14 @@ func EscapeHTML(html []byte) []byte {
 		}
 		return []byte("&amp;")
 	})
-	return regex.RepStrRef(&html, regEscFixAmp, []byte("&amp;"))
+	return regEscFixAmp.RepStrRef(&html, []byte("&amp;"))
 }
 
 var regEscHTMLArgs *regex.Regexp = regex.Compile(`[\\"'\']`)
 
 // EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes 
 func EscapeHTMLArgs(html []byte) []byte {
-	return regex.RepFuncRef(&html, regEscHTMLArgs, func(data func(int) []byte) []byte {
+	return regEscHTMLArgs.RepFuncRef(&html, func(data func(int) []byte) []byte {
 		return append([]byte("\\"), data(0)...)
 	})
 }
@@ -924,7 +927,7 @@ var regDirEndSlash *regex.Regexp = regex.Compile(`[\\/][^\\/]*$`)
 //
 // @search is what file you want to search fro
 func GetFileFromParent(root string, start string, search string) (string, bool) {
-	dir := string(regex.RepStr([]byte(start), regDirEndSlash, []byte{}))
+	dir := string(regDirEndSlash.RepStr([]byte(start), []byte{}))
 	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
 		return "", false
 	}
