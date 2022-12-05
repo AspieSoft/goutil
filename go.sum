@@ -1,5 +1,5 @@
-github.com/AspieSoft/go-regex/v4 v4.0.0 h1:tTNiuKVitpoMb/wA6cL6L+OUKEvH6pf0upfMIyAkYNo=
-github.com/AspieSoft/go-regex/v4 v4.0.0/go.mod h1:q4qjAlubS4bRQhtxD8mHm3x+5U+ouWQsDAiAudEEWc4=
+github.com/AspieSoft/go-regex/v4 v4.1.0 h1:J5JqzmD5WeFVLKOIcg3wTSOhbj54+3T4LPAoT5v1zNE=
+github.com/AspieSoft/go-regex/v4 v4.1.0/go.mod h1:q4qjAlubS4bRQhtxD8mHm3x+5U+ouWQsDAiAudEEWc4=
 github.com/AspieSoft/go-syncterval v1.0.3 h1:uKHRCsg0HRdARk/36GpY+P2tNnjN+FBt31zG3lj+RNY=
 github.com/AspieSoft/go-syncterval v1.0.3/go.mod h1:F4hG1ayOBB0PrCP/LCUuFZYKC4ARNKKCgWSUmq6hRd4=
 github.com/AspieSoft/go-ttlcache v1.2.0 h1:mhpHWs/cl3ByMxMZCm2LUGmF3r/2tKv43sGMpcOoZFY=
@@ -15,5 +15,5 @@ github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58/go.mod h1:DXv8WO4yhM
 golang.org/x/exp v0.0.0-20221204150635-6dcec336b2bb h1:QIsP/NmClBICkqnJ4rSIhnrGiGR7Yv9ZORGGnmmLTPk=
 golang.org/x/exp v0.0.0-20221204150635-6dcec336b2bb/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/sys v0.0.0-20220908164124-27713097b956/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.1.0 h1:kunALQeHf1/185U1i0GOB/fy1IPRDDpuoOOqRReG57U=
-golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.3.0 h1:w8ZOecv6NaNa/zC8944JTU3vz4u6Lagfk4RPQxv92NQ=
+golang.org/x/sys v0.3.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
