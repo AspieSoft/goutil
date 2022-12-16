@@ -648,6 +648,58 @@ func CompareHash(text []byte, compare []byte, key []byte) bool {
 }
 
 
+// RandBytes generates random bytes using crypto/rand
+//
+// @exclude[0] allows you can to pass an optional []byte to ensure that set of chars will not be included in the output string
+//
+// @exclude[1] provides a replacement string to put in place of the unwanted chars
+//
+// @exclude[2:] is currently ignored
+func RandBytes(size int, exclude ...[]byte) []byte {
+	b := make([]byte, size)
+	rand.Read(b)
+	b = []byte(base64.URLEncoding.EncodeToString(b))
+
+	if len(exclude) >= 2 {
+		if exclude[0] == nil || len(exclude[0]) == 0 {
+			b = regex.Compile(`[^\w_-]`).RepStr(b, exclude[1])
+		}else{
+			b = regex.Compile(`[%1]`, string(exclude[0])).RepStr(b, exclude[1])
+		}
+	}else if len(exclude) >= 1 {
+		if exclude[0] == nil || len(exclude[0]) == 0 {
+			b = regex.Compile(`[^\w_-]`).RepStr(b, []byte{})
+		}else{
+			b = regex.Compile(`[%1]`, string(exclude[0])).RepStr(b, []byte{})
+		}
+	}
+
+	for len(b) < size {
+		a := make([]byte, size)
+		rand.Read(a)
+		a = []byte(base64.URLEncoding.EncodeToString(a))
+	
+		if len(exclude) >= 2 {
+			if exclude[0] == nil || len(exclude[0]) == 0 {
+				a = regex.Compile(`[^\w_-]`).RepStr(a, exclude[1])
+			}else{
+				a = regex.Compile(`[%1]`, string(exclude[0])).RepStr(a, exclude[1])
+			}
+		}else if len(exclude) >= 1 {
+			if exclude[0] == nil || len(exclude[0]) == 0 {
+				a = regex.Compile(`[^\w_-]`).RepStr(a, []byte{})
+			}else{
+				a = regex.Compile(`[%1]`, string(exclude[0])).RepStr(a, []byte{})
+			}
+		}
+
+		b = append(b, a...)
+	}
+
+	return b[:size]
+}
+
+
 const localEncKeyAdd string = "txavzc5CMtpmqERcdTQCbs6cBKAyYc/9hP/s3wLREZBfoiEB8Vc00//i27FQ3twTmW0jAWNiTjXkx1iDAklqCXT1lvyGbSjb2iftyQRLFgM="
 
 // EncryptLocal is a Non Standard AES-CFB Encryption method
