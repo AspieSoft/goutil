@@ -464,7 +464,6 @@ func EscapeHTML(html []byte) []byte {
 }
 
 var regEscHTMLArgs *regex.Regexp = regex.Compile(`([\\]*)([\\"'\'])`)
-var regEscHTMLArgsBackslash *regex.Regexp = regex.Compile(`\\\\(\\["'\']|)`)
 
 // EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes
 // @quote can be used to only escape specific quotes or chars
