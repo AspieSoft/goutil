@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/AspieSoft/go-regex/v4"
+	"github.com/alphadose/haxmap"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -1020,6 +1021,13 @@ type Watcher struct {
 	Any func(path string, op string)
 }
 
+type watcherObj struct {
+	root string
+	watcher *fsnotify.Watcher
+}
+
+var watcherList *haxmap.Map[string, watcherObj] = haxmap.New[string, watcherObj]()
+
 // WatchDir watches the files in a directory and its subdirectories for changes
 func WatchDir(root string, cb *Watcher) {
 	watcher, err := fsnotify.NewWatcher()
@@ -1027,6 +1035,21 @@ func WatchDir(root string, cb *Watcher) {
 		return
 	}
 	defer watcher.Close()
+
+	rand := root + "." + string(RandBytes(64))
+	if  _, ok := watcherList.Get(rand); ok {
+		loops := 10000
+		for loops > 0 {
+			loops--
+			if  _, ok := watcherList.Get(rand); !ok {
+				break
+			}
+			rand = root + "." + string(RandBytes(64))
+		}
+	}
+	if  _, ok := watcherList.Get(rand); !ok {
+		watcherList.Set(rand, watcherObj{root, watcher})
+	}
 
 	done := make(chan bool)
 	go func() {
@@ -1081,6 +1104,20 @@ func watchDirSub(watcher *fsnotify.Watcher, dir string){
 			}
 		}
 	}
+}
+
+// CloseWatchers will close all the watchers with the given root if they were created by goutil
+//
+// @root pass a file path for a specific watcher or "*" for all watchers that exist
+//
+// note: this method may include other modules that are using goutil as a dependency
+func CloseWatchers(root string) {
+	watcherList.ForEach(func(id string, cache watcherObj) bool {
+		if root == "*" || cache.root == root {
+			cache.watcher.Close()
+		}
+		return true
+	})
 }
 
 
