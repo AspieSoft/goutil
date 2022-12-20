@@ -3,6 +3,8 @@ package goutil
 import (
 	"errors"
 	"testing"
+
+	"github.com/AspieSoft/go-regex/v4"
 )
 
 func Test(t *testing.T){
@@ -63,5 +65,14 @@ func TestEncryptLocal(t *testing.T) {
 	}
 	if string(dec) != msg {
 		t.Error("[", msg, "]\n", errors.New("DecryptLocal did not return the correct output"))
+	}
+}
+
+func TestHtmlEscape(t *testing.T) {
+	html := regex.JoinBytes([]byte("<a href=\""), EscapeHTMLArgs([]byte(`test 1\\" attr="hack" null="`), '"'), '"', []byte("js=\""), EscapeHTMLArgs([]byte("this.media='all' `line \\n break`"), '"'), []byte("\">"), EscapeHTML([]byte(`<html>element & &amp; &amp;amp; &bad; test</html>`)), []byte("</a>"))
+	html = regex.Compile(`href="(?:\\[\"]|.)*?"`).RepStrRef(&html, []byte{})
+
+	if regex.Compile(`(hack|<html>|&bad;|&amp;amp;|\\\\n|\\')`).MatchRef(&html) {
+		t.Error(errors.New("'EscapeHTML' and/or 'EscapeHTMLArgs' method failed to prevent a test html hack properly"))
 	}
 }

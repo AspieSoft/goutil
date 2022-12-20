@@ -463,12 +463,25 @@ func EscapeHTML(html []byte) []byte {
 	return regEscFixAmp.RepStrRef(&html, []byte("&amp;"))
 }
 
-var regEscHTMLArgs *regex.Regexp = regex.Compile(`[\\"'\']`)
+var regEscHTMLArgs *regex.Regexp = regex.Compile(`([\\]*)([\\"'\'])`)
+var regEscHTMLArgsBackslash *regex.Regexp = regex.Compile(`\\\\(\\["'\']|)`)
 
-// EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes 
-func EscapeHTMLArgs(html []byte) []byte {
+// EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes
+// @quote can be used to only escape specific quotes or chars
+func EscapeHTMLArgs(html []byte, quote ...byte) []byte {
+	if len(quote) == 0 {
+		quote = []byte("\"'`")
+	}
+
 	return regEscHTMLArgs.RepFuncRef(&html, func(data func(int) []byte) []byte {
-		return append([]byte("\\"), data(0)...)
+		if len(data(1)) % 2 == 0 && bytes.ContainsRune(quote, rune(data(2)[0])) {
+			// return append([]byte("\\"), data(2)...)
+			return regex.JoinBytes(data(1), '\\', data(2))
+		}
+		if bytes.ContainsRune(quote, rune(data(2)[0])) {
+			return append(data(1), data(2)...)
+		}
+		return data(0)
 	})
 }
 
