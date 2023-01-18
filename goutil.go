@@ -242,6 +242,41 @@ func ToInt(res interface{}) int {
 	}
 }
 
+// ToFloat converts multiple types to a float64
+//
+// accepts: int, int32, int64, float64, float32, string, []byte, byte
+func ToFloat(res interface{}) float64 {
+	switch reflect.TypeOf(res) {
+		case VarType["int"]:
+			return float64(res.(int))
+		case VarType["int32"]:
+			return float64(res.(int32))
+		case VarType["int64"]:
+			return float64(res.(int64))
+		case VarType["float64"]:
+			return float64(res.(float64))
+		case VarType["float32"]:
+			return float64(res.(float32))
+		case VarType["string"]:
+			if i, err := strconv.ParseFloat(res.(string), 64); err == nil {
+				return i
+			}
+			return 0
+		case VarType["byteArray"]:
+			if i, err := strconv.ParseFloat(string(res.([]byte)), 64); err == nil {
+				return i
+			}
+			return 0
+		case VarType["byte"]:
+			if i, err := strconv.ParseFloat(string(res.(byte)), 64); err == nil {
+				return i
+			}
+			return 0
+		default:
+			return 0
+	}
+}
+
 // IsZeroOfUnderlyingType can be used to determine if an interface{} in null or empty
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	// return x == nil || x == reflect.Zero(reflect.TypeOf(x)).Interface()
