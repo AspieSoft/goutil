@@ -593,7 +593,8 @@ func ToArray(res interface{}) []interface{} {
 	}
 }
 
-type supportedType interface {
+// SupportedType is an interface containing the types which are supported by the ToType method
+type SupportedType interface {
 	string | []byte | byte | int | bool | int64 | int32 | float64 | float32 | [][]byte | []interface{} | []string | []bool | []int | []int64 | []int32 | []float64 | []float32 | map[string]interface{} | map[byte]interface{} | map[int]interface{} | map[int64]interface{} | map[int32]interface{} | map[float64]interface{} | map[float32]interface{}
 }
 
@@ -602,7 +603,7 @@ type supportedType interface {
 // if it fails to convert, it will return a nil/zero value for the appropriate type
 //
 // recommended: add .(string|[]byte|int|etc) to the end of the function to get the correct type output in place of interface{}
-func ToType[T supportedType](res interface{}) interface{} {
+func ToType[T SupportedType](res interface{}) interface{} {
 	var varT interface{} = ""
 	if _, ok := varT.(T); ok {
 		return ToString[string](res)
