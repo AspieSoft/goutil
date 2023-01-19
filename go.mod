@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/v3
+module github.com/AspieSoft/goutil/v4
 
 go 1.18
 
