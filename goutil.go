@@ -36,9 +36,11 @@ var VarType map[string]reflect.Type
 func init(){
 	VarType = map[string]reflect.Type{}
 
-	VarType["array"] = reflect.TypeOf([]interface{}{})
-	VarType["arrayByte"] = reflect.TypeOf([][]byte{})
-	VarType["map"] = reflect.TypeOf(map[string]interface{}{})
+	VarType["[]interface{}"] = reflect.TypeOf([]interface{}{})
+	VarType["array"] = VarType["[]interface{}"]
+	VarType["[][]byte"] = reflect.TypeOf([][]byte{})
+	VarType["map[string]interface{}"] = reflect.TypeOf(map[string]interface{}{})
+	VarType["map"] = VarType["map[string]interface{}"]
 
 	VarType["int"] = reflect.TypeOf(int(0))
 	VarType["int64"] = reflect.TypeOf(int64(0))
@@ -46,7 +48,8 @@ func init(){
 	VarType["float32"] = reflect.TypeOf(float32(0))
 
 	VarType["string"] = reflect.TypeOf("")
-	VarType["byteArray"] = reflect.TypeOf([]byte{})
+	VarType["[]byte"] = reflect.TypeOf([]byte{})
+	VarType["byteArray"] = VarType["[]byte"]
 	VarType["byte"] = reflect.TypeOf([]byte{0}[0])
 
 	// int 32 returned instead of byte
@@ -54,7 +57,61 @@ func init(){
 
 	VarType["func"] = reflect.TypeOf(func(){})
 
-	VarType["bool"] = reflect.TypeOf(true)
+	VarType["bool"] = reflect.TypeOf(false)
+
+	VarType["int8"] = reflect.TypeOf(int8(0))
+	VarType["int16"] = reflect.TypeOf(int16(0))
+	
+	VarType["uint"] = reflect.TypeOf(uint(0))
+	VarType["uint8"] = reflect.TypeOf(uint8(0))
+	VarType["uint16"] = reflect.TypeOf(uint16(0))
+	VarType["uint32"] = reflect.TypeOf(uint32(0))
+	VarType["uint64"] = reflect.TypeOf(uint64(0))
+	VarType["uintptr"] = reflect.TypeOf(uintptr(0))
+
+	VarType["complex128"] = reflect.TypeOf(complex128(0))
+	VarType["complex64"] = reflect.TypeOf(complex64(0))
+
+	VarType["map[byte]interface{}"] = reflect.TypeOf(map[byte]interface{}{})
+	VarType["map[int]interface{}"] = reflect.TypeOf(map[int]interface{}{})
+	VarType["map[int64]interface{}"] = reflect.TypeOf(map[int64]interface{}{})
+	VarType["map[int32]interface{}"] = reflect.TypeOf(map[int32]interface{}{})
+	VarType["map[float64]interface{}"] = reflect.TypeOf(map[float64]interface{}{})
+	VarType["map[float32]interface{}"] = reflect.TypeOf(map[float32]interface{}{})
+
+	VarType["map[int8]interface{}"] = reflect.TypeOf(map[int8]interface{}{})
+	VarType["map[int16]interface{}"] = reflect.TypeOf(map[int16]interface{}{})
+
+	VarType["map[uint]interface{}"] = reflect.TypeOf(map[uint]interface{}{})
+	VarType["map[uint8]interface{}"] = reflect.TypeOf(map[uint8]interface{}{})
+	VarType["map[uint16]interface{}"] = reflect.TypeOf(map[uint16]interface{}{})
+	VarType["map[uint32]interface{}"] = reflect.TypeOf(map[uint32]interface{}{})
+	VarType["map[uint64]interface{}"] = reflect.TypeOf(map[uint64]interface{}{})
+	VarType["map[uintptr]interface{}"] = reflect.TypeOf(map[uintptr]interface{}{})
+
+	VarType["map[complex128]interface{}"] = reflect.TypeOf(map[complex128]interface{}{})
+	VarType["map[complex64]interface{}"] = reflect.TypeOf(map[complex64]interface{}{})
+
+	VarType["[]string"] = reflect.TypeOf([]string{})
+	VarType["[]bool"] = reflect.TypeOf([]bool{})
+	VarType["[]int"] = reflect.TypeOf([]int{})
+	VarType["[]int64"] = reflect.TypeOf([]int64{})
+	VarType["[]int32"] = reflect.TypeOf([]int32{})
+	VarType["[]float64"] = reflect.TypeOf([]float64{})
+	VarType["[]float32"] = reflect.TypeOf([]float32{})
+
+	VarType["[]int8"] = reflect.TypeOf([]int8{})
+	VarType["[]int16"] = reflect.TypeOf([]int16{})
+
+	VarType["[]uint"] = reflect.TypeOf([]uint{})
+	VarType["[]uint8"] = reflect.TypeOf([]uint8{})
+	VarType["[]uint16"] = reflect.TypeOf([]uint16{})
+	VarType["[]uint32"] = reflect.TypeOf([]uint32{})
+	VarType["[]uint64"] = reflect.TypeOf([]uint64{})
+	VarType["[]uintptr"] = reflect.TypeOf([]uintptr{})
+
+	VarType["[]complex128"] = reflect.TypeOf([]complex128{})
+	VarType["[]complex64"] = reflect.TypeOf([]complex64{})
 }
 
 // JoinPath joins multiple file types with safety from backtracking
@@ -75,9 +132,9 @@ func JoinPath(path ...string) (string, error) {
 
 // Contains returns true if an array contains a value
 func Contains[T any](search []T, value T) bool {
-	val := ToString(value)
+	val := ToString[string](value)
 	for _, v := range search {
-		if ToString(v) == val {
+		if ToString[string](v) == val {
 			return true
 		}
 	}
@@ -88,20 +145,20 @@ func Contains[T any](search []T, value T) bool {
 //
 // returns -1 and an error if the value is not found
 func IndexOf[T any](search []T, value T) (int, error) {
-	val := ToString(value)
+	val := ToString[string](value)
 	for i, v := range search {
-		if ToString(v) == val {
+		if ToString[string](v) == val {
 			return i, nil
 		}
 	}
-	return -1, errors.New("array does not contain value: " + ToString(value))
+	return -1, errors.New("array does not contain value: " + ToString[string](value))
 }
 
 // ContainsMap returns true if a map contains a value
 func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
-	val := ToString(value)
+	val := ToString[string](value)
 	for _, v := range search {
-		if ToString(v) == val {
+		if ToString[string](v) == val {
 			return true
 		}
 	}
@@ -112,14 +169,14 @@ func ContainsMap[T Hashable, J any](search map[T]J, value J) bool {
 //
 // returns an error if the value is not found
 func IndexOfMap[T Hashable, J any](search map[T]J, value J) (T, error) {
-	val := ToString(value)
+	val := ToString[string](value)
 	for i, v := range search {
-		if ToString(v) == val {
+		if ToString[string](v) == val {
 			return i, nil
 		}
 	}
 	var blk T
-	return blk, errors.New("map does not contain value: " + ToString(value))
+	return blk, errors.New("map does not contain value: " + ToString[string](value))
 }
 
 // ContainsMapKey returns true if a map contains a key
@@ -157,125 +214,603 @@ func TrimRepeats(b []byte, chars []byte) []byte {
 
 // ToString converts multiple types to a string
 //
-// accepts: string, []byte, byte, int32, int, int64, float64, float32
-func ToString(res interface{}) string {
+// accepts: string, []byte, byte, int (and variants), [][]byte, []interface{}
+func ToString[T interface{string | []byte}](res interface{}) T {
 	switch reflect.TypeOf(res) {
 		case VarType["string"]:
-			return res.(string)
-		case VarType["byteArray"]:
-			return string(res.([]byte))
+			return T(res.(string))
+		case VarType["[]byte"]:
+			return T(res.([]byte))
 		case VarType["byte"]:
-			return string(res.(byte))
+			return T([]byte{res.(byte)})
 		case VarType["int32"]:
-			return string(res.(int32))
+			return T([]byte{byte(res.(int32))})
 		case VarType["int"]:
-			return strconv.Itoa(res.(int))
+			return T(strconv.Itoa(res.(int)))
 		case VarType["int64"]:
-			return strconv.Itoa(int(res.(int64)))
+			return T(strconv.Itoa(int(res.(int64))))
 		case VarType["float64"]:
-			return strconv.FormatFloat(res.(float64), 'f', -1, 64)
+			return T(strconv.FormatFloat(res.(float64), 'f', -1, 64))
 		case VarType["float32"]:
-			return strconv.FormatFloat(float64(res.(float32)), 'f', -1, 32)
+			return T(strconv.FormatFloat(float64(res.(float32)), 'f', -1, 32))
+		case VarType["[]interface{}"]:
+			b := make([]byte, len(res.([]interface{})))
+			for i, v := range res.([]interface{}) {
+				b[i] = byte(ToNumber[int32](v))
+			}
+			return T(b)
+		case VarType["[]int"]:
+			b := make([]byte, len(res.([]int)))
+			for i, v := range res.([]int) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]int64"]:
+			b := make([]byte, len(res.([]int64)))
+			for i, v := range res.([]int64) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]int32"]:
+			b := make([]byte, len(res.([]int32)))
+			for i, v := range res.([]int32) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]int16"]:
+			b := make([]byte, len(res.([]int16)))
+			for i, v := range res.([]int16) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]int8"]:
+			b := make([]byte, len(res.([]int8)))
+			for i, v := range res.([]int8) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uint"]:
+			b := make([]byte, len(res.([]uint)))
+			for i, v := range res.([]uint) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uint8"]:
+			b := make([]byte, len(res.([]uint8)))
+			for i, v := range res.([]uint8) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uint16"]:
+			b := make([]byte, len(res.([]uint16)))
+			for i, v := range res.([]uint16) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uint32"]:
+			b := make([]byte, len(res.([]uint32)))
+			for i, v := range res.([]uint32) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uint64"]:
+			b := make([]byte, len(res.([]uint64)))
+			for i, v := range res.([]uint64) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]uintptr"]:
+			b := make([]byte, len(res.([]uintptr)))
+			for i, v := range res.([]uintptr) {
+				b[i] = byte(v)
+			}
+			return T(b)
+		case VarType["[]string"]:
+			b := []byte{}
+			for _, v := range res.([]string) {
+				b = append(b, []byte(v)...)
+			}
+			return T(b)
+		case VarType["[][]byte"]:
+			b := []byte{}
+			for _, v := range res.([][]byte) {
+				b = append(b, v...)
+			}
+			return T(b)
 		default:
-			return ""
+			return T("")
 	}
 }
 
-// ToByteArray converts multiple types to a []byte
+// ToNumber converts multiple types to a number
 //
-// accepts: string, []byte, byte, int32, int, int64, float64, float32
-func ToByteArray(res interface{}) []byte {
-	switch reflect.TypeOf(res) {
-		case VarType["string"]:
-			return []byte(res.(string))
-		case VarType["byteArray"]:
-			return res.([]byte)
-		case VarType["byte"]:
-			return []byte{res.(byte)}
-		case VarType["int32"]:
-			return []byte{byte(res.(int32))}
-		case VarType["int"]:
-			return []byte(strconv.Itoa(res.(int)))
-		case VarType["int64"]:
-			return []byte(strconv.Itoa(int(res.(int64))))
-		case VarType["float64"]:
-			return []byte(strconv.FormatFloat(res.(float64), 'f', -1, 64))
-		case VarType["float32"]:
-			return []byte(strconv.FormatFloat(float64(res.(float32)), 'f', -1, 32))
-		default:
-			return []byte{}
-	}
-}
-
-// ToInt converts multiple types to an int
-//
-// accepts: int, int32, int64, float64, float32, string, []byte, byte
-func ToInt(res interface{}) int {
+// accepts: int (and variants), string, []byte, byte, bool
+func ToNumber[T interface{int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | uintptr | float64 | float32}](res interface{}) T {
 	switch reflect.TypeOf(res) {
 		case VarType["int"]:
-			return res.(int)
+			return T(res.(int))
 		case VarType["int32"]:
-			return int(res.(int32))
+			return T(res.(int32))
 		case VarType["int64"]:
-			return int(res.(int64))
+			return T(res.(int64))
 		case VarType["float64"]:
-			return int(res.(float64))
+			return T(res.(float64))
 		case VarType["float32"]:
-			return int(res.(float32))
+			return T(res.(float32))
 		case VarType["string"]:
-			if i, err := strconv.Atoi(res.(string)); err == nil {
-				return i
+			var varT interface{} = T(0)
+			if _, ok := varT.(float64); ok {
+				if f, err := strconv.ParseFloat(res.(string), 64); err == nil {
+					return T(f)
+				}
+			}else if _, ok := varT.(float32); ok {
+				if f, err := strconv.ParseFloat(res.(string), 32); err == nil {
+					return T(f)
+				}
+			}else if i, err := strconv.Atoi(res.(string)); err == nil {
+				return T(i)
 			}
 			return 0
-		case VarType["byteArray"]:
+		case VarType["[]byte"]:
 			if i, err := strconv.Atoi(string(res.([]byte))); err == nil {
-				return i
+				return T(i)
 			}
 			return 0
 		case VarType["byte"]:
 			if i, err := strconv.Atoi(string(res.(byte))); err == nil {
-				return i
+				return T(i)
 			}
 			return 0
+		case VarType["bool"]:
+			if res.(bool) == true {
+				return 1
+			}
+			return 0
+		case VarType["int8"]:
+			return T(res.(int8))
+		case VarType["int16"]:
+			return T(res.(int16))
+		case VarType["uint"]:
+			return T(res.(uint))
+		case VarType["uint8"]:
+			return T(res.(uint))
+		case VarType["uint16"]:
+			return T(res.(uint))
+		case VarType["uint32"]:
+			return T(res.(uint))
+		case VarType["uint64"]:
+			return T(res.(uint))
+		case VarType["uintptr"]:
+			return T(res.(uint))
 		default:
 			return 0
 	}
 }
 
-// ToFloat converts multiple types to a float64
-//
-// accepts: int, int32, int64, float64, float32, string, []byte, byte
-func ToFloat(res interface{}) float64 {
+// ToMap converts multiple types to a map[string]interface{}
+func ToMap(res interface{}) map[string]interface{} {
 	switch reflect.TypeOf(res) {
-		case VarType["int"]:
-			return float64(res.(int))
-		case VarType["int32"]:
-			return float64(res.(int32))
-		case VarType["int64"]:
-			return float64(res.(int64))
-		case VarType["float64"]:
-			return float64(res.(float64))
-		case VarType["float32"]:
-			return float64(res.(float32))
-		case VarType["string"]:
-			if i, err := strconv.ParseFloat(res.(string), 64); err == nil {
-				return i
+		case VarType["map[string]interface{}"]:
+			return res.(map[string]interface{})
+		case VarType["map[byte]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[byte]interface{})))
+			for k, v := range res.(map[byte]interface{}) {
+				m[string(k)] = v
 			}
-			return 0
-		case VarType["byteArray"]:
-			if i, err := strconv.ParseFloat(string(res.([]byte)), 64); err == nil {
-				return i
+			return m
+		case VarType["map[int]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[int]interface{})))
+			for k, v := range res.(map[int]interface{}) {
+				m[ToString[string](k)] = v
 			}
-			return 0
-		case VarType["byte"]:
-			if i, err := strconv.ParseFloat(string(res.(byte)), 64); err == nil {
-				return i
+			return m
+		case VarType["map[int64]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[int64]interface{})))
+			for k, v := range res.(map[int64]interface{}) {
+				m[ToString[string](k)] = v
 			}
-			return 0
+			return m
+		case VarType["map[int32]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[int32]interface{})))
+			for k, v := range res.(map[int32]interface{}) {
+				m[ToString[string](k)] = v
+			}
+			return m
+		case VarType["map[float64]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[float64]interface{})))
+			for k, v := range res.(map[float64]interface{}) {
+				m[ToString[string](k)] = v
+			}
+			return m
+		case VarType["map[float32]interface{}"]:
+			m := make(map[string]interface{}, len(res.(map[float32]interface{})))
+			for k, v := range res.(map[float32]interface{}) {
+				m[ToString[string](k)] = v
+			}
+			return m
+		case VarType["[]interface{}"]:
+			m := make(map[string]interface{}, len(res.([]interface{})))
+			for k, v := range res.([]interface{}) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]byte"]:
+			m := make(map[string]interface{}, len(res.([]byte)))
+			for k, v := range res.([]byte) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]string"]:
+			m := make(map[string]interface{}, len(res.([]string)))
+			for k, v := range res.([]string) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]bool"]:
+			m := make(map[string]interface{}, len(res.([]bool)))
+			for k, v := range res.([]bool) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]int"]:
+			m := make(map[string]interface{}, len(res.([]int)))
+			for k, v := range res.([]int) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]int64"]:
+			m := make(map[string]interface{}, len(res.([]int64)))
+			for k, v := range res.([]int64) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]int32"]:
+			m := make(map[string]interface{}, len(res.([]int32)))
+			for k, v := range res.([]int32) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]float64"]:
+			m := make(map[string]interface{}, len(res.([]float64)))
+			for k, v := range res.([]float64) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
+		case VarType["[]float32"]:
+			m := make(map[string]interface{}, len(res.([]float32)))
+			for k, v := range res.([]float32) {
+				m[strconv.Itoa(k)] = v
+			}
+			return m
 		default:
-			return 0
+			return map[string]interface{}{}
 	}
 }
+
+// ToArray converts multiple types to an []interface{}
+func ToArray(res interface{}) []interface{} {
+	switch reflect.TypeOf(res) {
+		case VarType["[]interface{}"]:
+			return res.([]interface{})
+		case VarType["[]byte"]:
+			a := make([]interface{}, len(res.([]byte)))
+			for i, v := range res.([]byte) {
+				a[i] = v
+			}
+			return a
+		case VarType["[][]byte"]:
+			a := make([]interface{}, len(res.([][]byte)))
+			for i, v := range res.([][]byte) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]string"]:
+			a := make([]interface{}, len(res.([]string)))
+			for i, v := range res.([]string) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]bool"]:
+			a := make([]interface{}, len(res.([]bool)))
+			for i, v := range res.([]bool) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]int"]:
+			a := make([]interface{}, len(res.([]int)))
+			for i, v := range res.([]int) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]int64"]:
+			a := make([]interface{}, len(res.([]int64)))
+			for i, v := range res.([]int64) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]int32"]:
+			a := make([]interface{}, len(res.([]int32)))
+			for i, v := range res.([]int32) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]float64"]:
+			a := make([]interface{}, len(res.([]float64)))
+			for i, v := range res.([]float64) {
+				a[i] = v
+			}
+			return a
+		case VarType["[]float32"]:
+			a := make([]interface{}, len(res.([]float32)))
+			for i, v := range res.([]float32) {
+				a[i] = v
+			}
+			return a
+		case VarType["map[string]interface{}"]:
+			a := make([]interface{}, len(res.(map[string]interface{})))
+			for i, v := range res.(map[string]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		case VarType["map[byte]interface{}"]:
+			a := make([]interface{}, len(res.(map[byte]interface{})))
+			for i, v := range res.(map[byte]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		case VarType["map[int]interface{}"]:
+			a := make([]interface{}, len(res.(map[int]interface{})))
+			for i, v := range res.(map[int]interface{}) {
+				a[i] = v
+			}
+			return a
+		case VarType["map[int64]interface{}"]:
+			a := make([]interface{}, len(res.(map[int64]interface{})))
+			for i, v := range res.(map[int64]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		case VarType["map[int32]interface{}"]:
+			a := make([]interface{}, len(res.(map[int32]interface{})))
+			for i, v := range res.(map[int32]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		case VarType["map[float64]interface{}"]:
+			a := make([]interface{}, len(res.(map[float64]interface{})))
+			for i, v := range res.(map[float64]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		case VarType["map[float32]interface{}"]:
+			a := make([]interface{}, len(res.(map[float32]interface{})))
+			for i, v := range res.(map[float32]interface{}) {
+				a[ToNumber[int](i)] = v
+			}
+			return a
+		default:
+			return []interface{}{}
+	}
+}
+
+type supportedType interface {
+	string | []byte | byte | int | bool | int64 | int32 | float64 | float32 | [][]byte | []interface{} | []string | []bool | []int | []int64 | []int32 | []float64 | []float32 | map[string]interface{} | map[byte]interface{} | map[int]interface{} | map[int64]interface{} | map[int32]interface{} | map[float64]interface{} | map[float32]interface{}
+}
+
+// ToType attempts to converts an interface{} from the many possible types in golang, to a specific type of your choice
+//
+// if it fails to convert, it will return a nil/zero value for the appropriate type
+//
+// recommended: add .(string|[]byte|int|etc) to the end of the function to get the correct type output in place of interface{}
+func ToType[T supportedType](res interface{}) interface{} {
+	var varT interface{} = ""
+	if _, ok := varT.(T); ok {
+		return ToString[string](res)
+	}
+
+	varT = []byte{}
+	if _, ok := varT.(T); ok {
+		return ToString[[]byte](res)
+	}
+
+	varT = byte(0)
+	if _, ok := varT.(T); ok {
+		if b := ToString[[]byte](res); len(b) != 0 {
+			return b[0]
+		}
+		return byte(0)
+	}
+
+	varT = int(0)
+	if _, ok := varT.(T); ok {
+		return ToNumber[int](res)
+	}
+
+	varT = float64(0)
+	if _, ok := varT.(T); ok {
+		return ToNumber[float64](res)
+	}
+
+	varT = false
+	if _, ok := varT.(T); ok {
+		return !IsZeroOfUnderlyingType(res)
+	}
+
+	varT = int64(0)
+	if _, ok := varT.(T); ok {
+		return ToNumber[int64](res)
+	}
+
+	varT = int32(0)
+	if _, ok := varT.(T); ok {
+		return ToNumber[int32](res)
+	}
+
+	varT = float32(0)
+	if _, ok := varT.(T); ok {
+		return ToNumber[float32](res)
+	}
+
+	varT = []interface{}{}
+	if _, ok := varT.(T); ok {
+		return ToArray(res)
+	}
+
+	// arrays
+	varT = [][]byte{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([][]byte, len(r))
+		for i, v := range r {
+			a[i] = ToString[[]byte](v)
+		}
+		return a
+	}
+
+	varT = []string{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]string, len(r))
+		for i, v := range r {
+			a[i] = ToString[string](v)
+		}
+		return a
+	}
+
+	varT = []bool{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]bool, len(r))
+		for i, v := range r {
+			a[i] = !IsZeroOfUnderlyingType(v)
+		}
+		return a
+	}
+
+	varT = []int{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]int, len(r))
+		for i, v := range r {
+			a[i] = ToNumber[int](v)
+		}
+		return a
+	}
+
+	varT = []float64{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]float64, len(r))
+		for i, v := range r {
+			a[i] = ToNumber[float64](v)
+		}
+		return a
+	}
+
+	varT = []int64{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]int64, len(r))
+		for i, v := range r {
+			a[i] = ToNumber[int64](v)
+		}
+		return a
+	}
+
+	varT = []int32{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]int32, len(r))
+		for i, v := range r {
+			a[i] = ToNumber[int32](v)
+		}
+		return a
+	}
+
+	varT = []float32{}
+	if _, ok := varT.(T); ok {
+		r := ToArray(res)
+		a := make([]float32, len(r))
+		for i, v := range r {
+			a[i] = ToNumber[float32](v)
+		}
+		return a
+	}
+
+	// maps
+	varT = map[string]interface{}{}
+	if _, ok := varT.(T); ok {
+		return ToMap(res)
+	}
+
+	varT = map[byte]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[byte]interface{}, len(r))
+		for i, v := range r {
+			if b := ToString[[]byte](i); len(b) != 0 {
+				m[b[0]] = v
+			}else{
+				m[byte(ToNumber[int32](i))] = v
+			}
+		}
+		return m
+	}
+
+	varT = map[int]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[int]interface{}, len(r))
+		for i, v := range r {
+			m[ToNumber[int](i)] = v
+		}
+		return m
+	}
+
+	varT = map[float64]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[float64]interface{}, len(r))
+		for i, v := range r {
+			m[ToNumber[float64](i)] = v
+		}
+		return m
+	}
+
+	varT = map[int64]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[int64]interface{}, len(r))
+		for i, v := range r {
+			m[ToNumber[int64](i)] = v
+		}
+		return m
+	}
+
+	varT = map[int32]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[int32]interface{}, len(r))
+		for i, v := range r {
+			m[ToNumber[int32](i)] = v
+		}
+		return m
+	}
+
+	varT = map[float32]interface{}{}
+	if _, ok := varT.(T); ok {
+		r := ToMap(res)
+		m := make(map[float32]interface{}, len(r))
+		for i, v := range r {
+			m[ToNumber[float32](i)] = v
+		}
+		return m
+	}
+
+	return nil
+}
+
+
 
 // IsZeroOfUnderlyingType can be used to determine if an interface{} in null or empty
 func IsZeroOfUnderlyingType(x interface{}) bool {
@@ -290,7 +825,6 @@ func FormatMemoryUsage(b uint64) float64 {
 
 
 var regIsAlphaNumeric *regex.Regexp = regex.Compile(`^[A-Za-z0-9]+$`)
-
 
 // MapArgs will convert a bash argument array ([]string) into a map (map[string]string)
 //
@@ -950,15 +1484,15 @@ func CleanArray(data []interface{}) []interface{} {
 			cData[key] = CleanStr(val.(string))
 		}else if t == VarType["int"] || t == VarType["float64"] || t == VarType["float32"] || t == VarType["bool"] {
 			cData[key] = val
-		}else if t == VarType["byteArray"] {
+		}else if t == VarType["[]byte"] {
 			cData[key] = CleanStr(string(val.([]byte)))
 		}else if t == VarType["byte"] {
 			cData[key] = CleanStr(string(val.(byte)))
 		}else if t == VarType["int32"] {
 			cData[key] = CleanStr(string(val.(int32)))
-		}else if t == VarType["array"] {
+		}else if t == VarType["[]interface{}"] {
 			cData[key] = CleanArray(val.([]interface{}))
-		}else if t == VarType["map"] {
+		}else if t == VarType["map[string]interface{}"] {
 			cData[key] = CleanMap(val.(map[string]interface{}))
 		}
 	}
@@ -978,15 +1512,15 @@ func CleanMap(data map[string]interface{}) map[string]interface{} {
 			cData[key] = CleanStr(val.(string))
 		}else if t == VarType["int"] || t == VarType["float64"] || t == VarType["float32"] || t == VarType["bool"] {
 			cData[key] = val
-		}else if t == VarType["byteArray"] {
+		}else if t == VarType["[]byte"] {
 			cData[key] = CleanStr(string(val.([]byte)))
 		}else if t == VarType["byte"] {
 			cData[key] = CleanStr(string(val.(byte)))
 		}else if t == VarType["int32"] {
 			cData[key] = CleanStr(string(val.(int32)))
-		}else if t == VarType["array"] {
+		}else if t == VarType["[]interface{}"] {
 			cData[key] = CleanArray(val.([]interface{}))
-		}else if t == VarType["map"] {
+		}else if t == VarType["map[string]interface{}"] {
 			cData[key] = CleanMap(val.(map[string]interface{}))
 		}
 	}
@@ -1003,15 +1537,15 @@ func CleanJSON(val interface{}) interface{} {
 		return CleanStr(val.(string))
 	}else if t == VarType["int"] || t == VarType["float64"] || t == VarType["float32"] || t == VarType["bool"] {
 		return val
-	}else if t == VarType["byteArray"] {
+	}else if t == VarType["[]byte"] {
 		return CleanByte(val.([]byte))
 	}else if t == VarType["byte"] {
 		return CleanByte([]byte{val.(byte)})
 	}else if t == VarType["int32"] {
 		return CleanStr(string(val.(int32)))
-	}else if t == VarType["array"] {
+	}else if t == VarType["[]interface{}"] {
 		return CleanArray(val.([]interface{}))
-	}else if t == VarType["map"] {
+	}else if t == VarType["map[string]interface{}"] {
 		return CleanMap(val.(map[string]interface{}))
 	}
 	return nil

@@ -8,11 +8,11 @@ import (
 )
 
 func Test(t *testing.T){
-	if val := ToString(0); val != "0" {
+	if val := ToString[string](0); val != "0" {
 		t.Error("[", val, "]\n", errors.New("ToString Method Failed"))
 	}
 
-	if val := ToInt("1"); val != 1 {
+	if val := ToNumber[int]("1"); val != 1 {
 		t.Error("[", val, "]\n", errors.New("ToInt Method Failed"))
 	}
 
