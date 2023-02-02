@@ -24,6 +24,7 @@ import (
 
 	"github.com/AspieSoft/go-regex/v4"
 	"github.com/alphadose/haxmap"
+	"github.com/andybalholm/brotli"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -1136,6 +1137,73 @@ func Decompress(str []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	s, err := io.ReadAll(r)
+	if err != nil {
+		return []byte{}, err
+	}
+	return s, nil
+}
+
+// Gzip is Gzip compression to a utf8 []byte
+func Gzip(msg []byte) ([]byte, error) {
+	var b bytes.Buffer
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write([]byte(msg)); err != nil {
+		return []byte{}, err
+	}
+	if err := gz.Flush(); err != nil {
+		return []byte{}, err
+	}
+	if err := gz.Close(); err != nil {
+		return []byte{}, err
+	}
+	return b.Bytes(), nil
+}
+
+// Gunzip is Gzip decompression from a utf8 []byte
+func Gunzip(b []byte) ([]byte, error) {
+	rdata := bytes.NewReader(b)
+	r, err := gzip.NewReader(rdata)
+	if err != nil {
+		return []byte{}, err
+	}
+	s, err := io.ReadAll(r)
+	if err != nil {
+		return []byte{}, err
+	}
+	return s, nil
+}
+
+// BrotliCompress Compresses with brotli to a utf8 []byte
+//
+// @quality 0-11 (0 = fastest) (11 = best)
+func BrotliCompress(msg []byte, quality int) ([]byte, error) {
+	if quality < 0 {
+		quality = 0
+	}else if quality > 11 {
+		quality = 11
+	}
+
+	var b bytes.Buffer
+	w := brotli.NewWriter(&b)
+	brotli.NewWriterLevel(w, quality)
+	if _, err := w.Write([]byte(msg)); err != nil {
+		return []byte{}, err
+	}
+	if err := w.Flush(); err != nil {
+		return []byte{}, err
+	}
+	if err := w.Close(); err != nil {
+		return []byte{}, err
+	}
+
+	return b.Bytes(), nil
+}
+
+// BrotliCompress Decompresses with brotli from a utf8 []byte
+func BrotliDecompress(b []byte) ([]byte, error) {
+	rdata := bytes.NewReader(b)
+	r := brotli.NewReader(rdata)
 	s, err := io.ReadAll(r)
 	if err != nil {
 		return []byte{}, err

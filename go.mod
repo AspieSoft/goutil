@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/AspieSoft/go-regex/v4 v4.1.0
 	github.com/alphadose/haxmap v1.2.0
+	github.com/andybalholm/brotli v1.0.4
 	github.com/fsnotify/fsnotify v1.6.0
 )
 
