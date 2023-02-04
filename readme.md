@@ -10,7 +10,7 @@ This module simply adds a variety of useful functions in an easy to use way.
 
 ```shell script
 
-  go get github.com/AspieSoft/goutil/v3
+  go get github.com/AspieSoft/goutil/v4
 
 ```
 
