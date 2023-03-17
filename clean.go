@@ -17,7 +17,7 @@ func (sanitize *clean) Str(str string) string {
 }
 
 // Clean.Byte will sanitizes a []byte to valid UTF-8
-func (sanitize *clean) Byte(b []byte) []byte {
+func (sanitize *clean) Bytes(b []byte) []byte {
 	//todo: sanitize inputs
 	b = bytes.ToValidUTF8(b, []byte{})
 	return b
@@ -88,9 +88,9 @@ func (sanitize *clean) JSON(val interface{}) interface{} {
 	}else if t == VarType["int"] || t == VarType["float64"] || t == VarType["float32"] || t == VarType["bool"] {
 		return val
 	}else if t == VarType["[]byte"] {
-		return sanitize.Byte(val.([]byte))
+		return sanitize.Bytes(val.([]byte))
 	}else if t == VarType["byte"] {
-		return sanitize.Byte([]byte{val.(byte)})
+		return sanitize.Bytes([]byte{val.(byte)})
 	}else if t == VarType["int32"] {
 		return sanitize.Str(string(val.(int32)))
 	}else if t == VarType["[]interface{}"] {
