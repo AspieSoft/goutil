@@ -39,7 +39,7 @@ func (fs *fileSystem) JoinPath(path ...string) (string, error) {
 	return resPath, nil
 }
 
-var regDirEndSlash *regex.Regexp = regex.Compile(`[\\/][^\\/]*$`)
+var regDirEndSlash *regex.Regexp = regex.Comp(`[\\/][^\\/]*$`)
 
 // GetFileFromParent checks if the parent (or sub parent) directory of a file contains a specific file or folder
 //

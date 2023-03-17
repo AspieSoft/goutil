@@ -131,15 +131,15 @@ func (crypt *crypt) RandBytes(size int, exclude ...[]byte) []byte {
 
 	if len(exclude) >= 2 {
 		if exclude[0] == nil || len(exclude[0]) == 0 {
-			b = regex.Compile(`[^\w_-]`).RepStr(b, exclude[1])
+			b = regex.Comp(`[^\w_-]`).RepStr(b, exclude[1])
 		}else{
-			b = regex.Compile(`[%1]`, string(exclude[0])).RepStr(b, exclude[1])
+			b = regex.Comp(`[%1]`, string(exclude[0])).RepStr(b, exclude[1])
 		}
 	}else if len(exclude) >= 1 {
 		if exclude[0] == nil || len(exclude[0]) == 0 {
-			b = regex.Compile(`[^\w_-]`).RepStr(b, []byte{})
+			b = regex.Comp(`[^\w_-]`).RepStr(b, []byte{})
 		}else{
-			b = regex.Compile(`[%1]`, string(exclude[0])).RepStr(b, []byte{})
+			b = regex.Comp(`[%1]`, string(exclude[0])).RepStr(b, []byte{})
 		}
 	}
 
@@ -150,15 +150,15 @@ func (crypt *crypt) RandBytes(size int, exclude ...[]byte) []byte {
 	
 		if len(exclude) >= 2 {
 			if exclude[0] == nil || len(exclude[0]) == 0 {
-				a = regex.Compile(`[^\w_-]`).RepStr(a, exclude[1])
+				a = regex.Comp(`[^\w_-]`).RepStr(a, exclude[1])
 			}else{
-				a = regex.Compile(`[%1]`, string(exclude[0])).RepStr(a, exclude[1])
+				a = regex.Comp(`[%1]`, string(exclude[0])).RepStr(a, exclude[1])
 			}
 		}else if len(exclude) >= 1 {
 			if exclude[0] == nil || len(exclude[0]) == 0 {
-				a = regex.Compile(`[^\w_-]`).RepStr(a, []byte{})
+				a = regex.Comp(`[^\w_-]`).RepStr(a, []byte{})
 			}else{
-				a = regex.Compile(`[%1]`, string(exclude[0])).RepStr(a, []byte{})
+				a = regex.Comp(`[%1]`, string(exclude[0])).RepStr(a, []byte{})
 			}
 		}
 

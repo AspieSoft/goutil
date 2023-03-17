@@ -98,9 +98,9 @@ func TestCompress(t *testing.T){
 
 func TestHtmlEscape(t *testing.T) {
 	html := regex.JoinBytes([]byte("<a href=\""), HTML.EscapeArgs([]byte(`test 1\\" attr="hack" null="`), '"'), '"', []byte("js=\""), HTML.EscapeArgs([]byte("this.media='all' `line \\n break`"), '"'), []byte("\">"), HTML.Escape([]byte(`<html>element & &amp; &amp;amp; &bad; test</html>`)), []byte("</a>"))
-	html = regex.Compile(`href="(?:\\[\"]|.)*?"`).RepStrRef(&html, []byte{})
+	html = regex.Comp(`href="(?:\\[\"]|.)*?"`).RepStrRef(&html, []byte{})
 
-	if regex.Compile(`(hack|<html>|&bad;|&amp;amp;|\\\\n|\\')`).MatchRef(&html) {
+	if regex.Comp(`(hack|<html>|&bad;|&amp;amp;|\\\\n|\\')`).MatchRef(&html) {
 		t.Error(errors.New("'EscapeHTML' and/or 'EscapeHTMLArgs' method failed to prevent a test html hack properly"))
 	}
 }

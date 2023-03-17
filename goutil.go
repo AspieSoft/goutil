@@ -101,7 +101,7 @@ func FormatMemoryUsage(b uint64) float64 {
 }
 
 
-var regIsAlphaNumeric *regex.Regexp = regex.Compile(`^[A-Za-z0-9]+$`)
+var regIsAlphaNumeric *regex.Regexp = regex.Comp(`^[A-Za-z0-9]+$`)
 
 // MapArgs will convert a bash argument array ([]string) into a map (map[string]string)
 //

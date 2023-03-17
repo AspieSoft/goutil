@@ -15,8 +15,8 @@ var HTML *encodeHtml = &encodeHtml{}
 type encodeJson struct {}
 var JSON *encodeJson = &encodeJson{}
 
-var regEscHTML *regex.Regexp = regex.Compile(`[<>&]`)
-var regEscFixAmp *regex.Regexp = regex.Compile(`&amp;(amp;)*`)
+var regEscHTML *regex.Regexp = regex.Comp(`[<>&]`)
+var regEscFixAmp *regex.Regexp = regex.Comp(`&amp;(amp;)*`)
 
 // EscapeHTML replaces HTML characters with html entities
 //
@@ -33,7 +33,7 @@ func (encHtml *encodeHtml) Escape(html []byte) []byte {
 	return regEscFixAmp.RepStrRef(&html, []byte("&amp;"))
 }
 
-var regEscHTMLArgs *regex.Regexp = regex.Compile(`([\\]*)([\\"'\'])`)
+var regEscHTMLArgs *regex.Regexp = regex.Comp(`([\\]*)([\\"'\'])`)
 
 // EscapeHTMLArgs escapes quotes and backslashes for use within HTML quotes
 // @quote can be used to only escape specific quotes or chars
