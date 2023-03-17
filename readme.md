@@ -9,9 +9,7 @@ This module simply adds a variety of useful functions in an easy to use way.
 ## Installation
 
 ```shell script
-
-  go get github.com/AspieSoft/goutil/v4
-
+  go get github.com/AspieSoft/goutil/v5
 ```
 
 ## Usage
@@ -19,46 +17,59 @@ This module simply adds a variety of useful functions in an easy to use way.
 ```go
 
 import (
-  "github.com/AspieSoft/goutil/v3"
+  "github.com/AspieSoft/goutil/v5"
 )
 
 func main(){
-  goutil.JoinPath("root", "file") // a safer way to join 2 file paths without backtracking
+  goutil.FS.JoinPath("root", "file") // a safer way to join 2 file paths without backtracking
 
   goutil.Contains([]any, any) // checks if an array contains a value
 
   // simple AES-CFB Encryption
-  encrypted := goutil.Encrypt([]byte("my message"), []byte("password"))
-  goutil.Decrypt(encrypted, []byte("password"))
+  encrypted := goutil.Crypt.CFB.Encrypt([]byte("my message"), []byte("password"))
+  goutil.Crypt.CFB.Decrypt(encrypted, []byte("password"))
 
   // simple gzip compression for strings
-  compressed := goutil.Compress([]byte("my long string"))
-  goutil.Decompress(compressed)
+  // (also supports brotli and smaz)
+  compressed := goutil.GZIP.Zip([]byte("my long string"))
+  goutil.GZIP.UnZip(compressed)
 
   // watch a directory recursively
-  goutil.WatchDir("my/folder", &goutil.Watcher{
-    FileChange: func(path string, op string){
-      // do something when a file changes
-      path // the file path the change happened to
-      op // the change operation
-    },
+  watcher := goutil.FS.FileWatcher()
 
-    DirAdd: func(path string, op string){
-      // do something when a directory is added
-      // return false to prevent that directory from being watched
-      return true
-    },
+  watcher.OnFileChange = func(path, op string) {
+    // do something when a file changes
+    path // the file path the change happened to
+    op // the change operation
+  }
 
-    Remove: func(path string, op string){
-      // do something when a file or directory is removed
-      // return false to prevent that directory from no longer being watched
-      return true
-    },
+  watcher.OnDirAdd = func(path, op string) {
+    // do something when a directory is added
+    // return false to prevent that directory from being watched
+    return true
+  }
 
-    Any: func(path string, op string){
-      // do something every time something happenes
-    },
-  })
+  watcher.OnRemove = func(path, op string) {
+    // do something when a file or directory is removed
+    // return false to prevent that directory from no longer being watched
+    return true
+  }
+
+  watcher.OnAny = func(path, op string) {
+    // do something every time something happenes
+  }
+
+  // add a directory to the watch list
+  watcher.WatchDir("my/folder")
+
+  // close a specific watcher
+  watcher.CloseWatcher("my/folder")
+
+  // close all watchers
+  watcher.CloseWatcher("*")
+
+  // wait for all watchers to finish closing
+  watcher.Wait()
 }
 
 ```

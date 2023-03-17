@@ -8,19 +8,27 @@ import (
 )
 
 func Test(t *testing.T){
-	if val := ToString[string](0); val != "0" {
-		t.Error("[", val, "]\n", errors.New("ToString Method Failed"))
+	// this test function is for debugging
+}
+
+func TestBasic(t *testing.T){
+	if val := toString[string](0); val != "0" {
+		t.Error("[", val, "]\n", errors.New("toString Method Failed"))
 	}
 
-	if val := ToNumber[int]("1"); val != 1 {
-		t.Error("[", val, "]\n", errors.New("ToInt Method Failed"))
+	if val := toNumber[int]("1"); val != 1 {
+		t.Error("[", val, "]\n", errors.New("toInt Method Failed"))
 	}
 
-	if val, err := JoinPath("test", "1"); err != nil {
+	if val := ToType[float64]("5.0"); val != 5.0 {
+		t.Error("[", val, "]\n", errors.New("ToType[float64] Method Failed"))
+	}
+
+	if val, err := FS.JoinPath("test", "1"); err != nil {
 		t.Error("[", val, "]\n", errors.New("JoinPath Method Failed"))
 	}
 
-	if val, err := JoinPath("test", "../out/of/root"); err == nil {
+	if val, err := FS.JoinPath("test", "../out/of/root"); err == nil {
 		t.Error("[", val, "]\n", errors.New("JoinPath Method Leaked Outsite The Root"))
 	}
 
@@ -31,11 +39,11 @@ func Test(t *testing.T){
 
 func TestEncrypt(t *testing.T){
 	msg := "This is a test"
-	enc, err := Encrypt([]byte(msg), []byte("MyKey123"))
+	enc, err := Crypt.CFB.Encrypt([]byte(msg), []byte("MyKey123"))
 	if err != nil {
 		t.Error(err)
 	}
-	dec, err := Decrypt(enc, []byte("MyKey123"))
+	dec, err := Crypt.CFB.Decrypt(enc, []byte("MyKey123"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -43,33 +51,53 @@ func TestEncrypt(t *testing.T){
 		t.Error("[", msg, "]\n", errors.New("Decrypt did not return the correct output"))
 	}
 
-	hash, err := NewHash([]byte(msg), []byte("MyKey123"))
+	hash, err := Crypt.Hash.New([]byte(msg), []byte("MyKey123"))
 	if err != nil {
 		t.Error(err)
 	}
-	if !CompareHash([]byte(msg), hash, []byte("MyKey123")) {
+	if !Crypt.Hash.Compare([]byte(msg), hash, []byte("MyKey123")) {
 		t.Error("[", msg, "]\n", errors.New("CompareHash did not return true"))
 	}
 }
 
-func TestEncryptLocal(t *testing.T) {
+func TestCompress(t *testing.T){
 	msg := "This is a test"
-	key := []byte("ncu3l89yn298hidh8nxoiauj932oijqkhd8o3nq7i")
-	enc, err := EncryptLocal([]byte(msg), key)
+	comp, err := GZIP.Zip([]byte(msg))
 	if err != nil {
 		t.Error(err)
 	}
-	dec, err := DecryptLocal(enc, key)
+	dec, err := GZIP.UnZip(comp)
 	if err != nil {
 		t.Error(err)
 	}
 	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("DecryptLocal did not return the correct output"))
+		t.Error("[", msg, "]\n", errors.New("Gzip did not return the correct output"))
+	}
+
+	comp, err = BROTLI.Zip([]byte(msg), 11)
+	if err != nil {
+		t.Error(err)
+	}
+	dec, err = BROTLI.UnZip(comp)
+	if err != nil {
+		t.Error(err)
+	}
+	if string(dec) != msg {
+		t.Error("[", msg, "]\n", errors.New("Brotli did not return the correct output"))
+	}
+
+	comp = SMAZ.Zip([]byte(msg), true)
+	dec, err = SMAZ.UnZip(comp)
+	if err != nil {
+		t.Error(err)
+	}
+	if string(dec) != msg {
+		t.Error("[", msg, "]\n", errors.New("SMAZ did not return the correct output"))
 	}
 }
 
 func TestHtmlEscape(t *testing.T) {
-	html := regex.JoinBytes([]byte("<a href=\""), EscapeHTMLArgs([]byte(`test 1\\" attr="hack" null="`), '"'), '"', []byte("js=\""), EscapeHTMLArgs([]byte("this.media='all' `line \\n break`"), '"'), []byte("\">"), EscapeHTML([]byte(`<html>element & &amp; &amp;amp; &bad; test</html>`)), []byte("</a>"))
+	html := regex.JoinBytes([]byte("<a href=\""), HTML.EscapeArgs([]byte(`test 1\\" attr="hack" null="`), '"'), '"', []byte("js=\""), HTML.EscapeArgs([]byte("this.media='all' `line \\n break`"), '"'), []byte("\">"), HTML.Escape([]byte(`<html>element & &amp; &amp;amp; &bad; test</html>`)), []byte("</a>"))
 	html = regex.Compile(`href="(?:\\[\"]|.)*?"`).RepStrRef(&html, []byte{})
 
 	if regex.Compile(`(hack|<html>|&bad;|&amp;amp;|\\\\n|\\')`).MatchRef(&html) {
