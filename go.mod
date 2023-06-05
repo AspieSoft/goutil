@@ -3,7 +3,7 @@ module github.com/AspieSoft/goutil/v5
 go 1.18
 
 require (
-	github.com/AspieSoft/go-regex/v4 v4.1.1
+	github.com/AspieSoft/go-regex/v4 v4.1.2
 	github.com/alphadose/haxmap v1.2.0
 	github.com/andybalholm/brotli v1.0.5
 	github.com/cespare/go-smaz v1.0.0
