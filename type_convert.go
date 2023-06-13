@@ -1232,6 +1232,11 @@ func ToType[T SupportedType](val interface{}) T {
 	return NullType[T]{}.Null
 }
 
+// ToVarType grabs the type from another var as a reference, and runs the `ToType` with the ref type
+func ToVarType[T SupportedType](val interface{}, ref T) T {
+	return ToType[T](val)
+}
+
 // IsZeroOfUnderlyingType can be used to determine if an interface{} in null or empty
 func IsZeroOfUnderlyingType(x interface{}) bool {
 	// return x == nil || x == reflect.Zero(reflect.TypeOf(x)).Interface()
