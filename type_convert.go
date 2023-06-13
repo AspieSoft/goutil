@@ -1,6 +1,7 @@
 package goutil
 
 import (
+	"bytes"
 	"reflect"
 	"strconv"
 )
@@ -1236,9 +1237,9 @@ func ToType[T SupportedType](val interface{}) T {
 //
 // this method is similar to the ToType method, but it simply returns nil if it cannot find the proper var type
 func ToVarTypeInterface(val interface{}, ref interface{}) interface{} {
-	// basic
 	refT := reflect.TypeOf(ref)
 
+	// basic
 	if refT == VarType["string"] {
 		return ToInterface{toString[string](val)}.Val
 	}
@@ -1637,6 +1638,242 @@ func ToVarTypeInterface(val interface{}, ref interface{}) interface{} {
 	}
 
 	return nil
+}
+
+// ToVarTypeInterface attempts to convert an interface to match the unknown type of another interface
+//
+// this method is similar to the ToType method, but it simply returns nil if it cannot find the proper var type
+func TypeEqual(val1 interface{}, val2 interface{}) bool {
+	val2 = ToVarTypeInterface(val2, val1)
+	refT := reflect.TypeOf(val1)
+
+	if val1 == nil {
+		return val2 == nil
+	}else if val2 == nil {
+		return val1 == nil
+	}
+
+	// basic
+	if refT == VarType["string"] {
+		return val1.(string) == val2.(string)
+	}
+
+	if refT == VarType["[]byte"] {
+		return bytes.Equal(val1.([]byte), val2.([]byte))
+	}
+
+	if refT == VarType["byte"] {
+		return val1.(byte) == val2.(byte)
+	}
+
+	if refT == VarType["rune"] {
+		return val1.(rune) == val2.(rune)
+	}
+
+	if refT == VarType["bool"] {
+		return val1.(bool) == val2.(bool)
+	}
+
+	// int
+	if refT == VarType["int"] {
+		return val1.(int) == val2.(int)
+	}
+
+	if refT == VarType["int64"] {
+		return val1.(int64) == val2.(int64)
+	}
+
+	if refT == VarType["int32"] {
+		return val1.(int32) == val2.(int32)
+	}
+
+	if refT == VarType["int16"] {
+		return val1.(int16) == val2.(int16)
+	}
+
+	if refT == VarType["int8"] {
+		return val1.(int8) == val2.(int8)
+	}
+
+	// uint
+	if refT == VarType["uintptr"] {
+		return val1.(uintptr) == val2.(uintptr)
+	}
+
+	if refT == VarType["uint"] {
+		return val1.(uint) == val2.(uint)
+	}
+
+	if refT == VarType["uint64"] {
+		return val1.(uint64) == val2.(uint64)
+	}
+
+	if refT == VarType["uint32"] {
+		return val1.(uint32) == val2.(uint32)
+	}
+
+	if refT == VarType["uint16"] {
+		return val1.(uint16) == val2.(uint16)
+	}
+
+	if refT == VarType["uint8"] {
+		return val1.(uint8) == val2.(uint8)
+	}
+
+	// float
+	if refT == VarType["float64"] {
+		return val1.(float64) == val2.(float64)
+	}
+
+	if refT == VarType["float32"] {
+		return val1.(float32) == val2.(float32)
+	}
+
+	// array - basic
+	if refT == VarType["interface{}"] {
+		return ArrayEqual(val1.([]interface{}), val2.([]interface{}))
+	}
+
+	if refT == VarType["[]string"] {
+		return ArrayEqual(val1.([]string), val2.([]string))
+	}
+
+	if refT == VarType["[][]byte"] {
+		return ArrayEqual(val1.([][]byte), val2.([][]byte))
+	}
+
+	if refT == VarType["[]rune"] {
+		return ArrayEqual(val1.([]rune), val2.([]rune))
+	}
+
+	if refT == VarType["[]bool"] {
+		return ArrayEqual(val1.([]bool), val2.([]bool))
+	}
+
+	// array - int
+	if refT == VarType["[]int"] {
+		return ArrayEqual(val1.([]int), val2.([]int))
+	}
+
+	if refT == VarType["[]int64"] {
+		return ArrayEqual(val1.([]int64), val2.([]int64))
+	}
+
+	if refT == VarType["[]int32"] {
+		return ArrayEqual(val1.([]int32), val2.([]int32))
+	}
+
+	if refT == VarType["[]int16"] {
+		return ArrayEqual(val1.([]int16), val2.([]int16))
+	}
+
+	if refT == VarType["[]int8"] {
+		return ArrayEqual(val1.([]int8), val2.([]int8))
+	}
+
+	// array - uint
+	if refT == VarType["[]uintptr"] {
+		return ArrayEqual(val1.([]uintptr), val2.([]uintptr))
+	}
+
+	if refT == VarType["[]uint"] {
+		return ArrayEqual(val1.([]uint), val2.([]uint))
+	}
+
+	if refT == VarType["[]uint64"] {
+		return ArrayEqual(val1.([]uint64), val2.([]uint64))
+	}
+
+	if refT == VarType["[]uint32"] {
+		return ArrayEqual(val1.([]uint32), val2.([]uint32))
+	}
+
+	if refT == VarType["[]uint16"] {
+		return ArrayEqual(val1.([]uint16), val2.([]uint16))
+	}
+
+	if refT == VarType["[]uint8"] {
+		return ArrayEqual(val1.([]uint8), val2.([]uint8))
+	}
+
+	// array - float
+	if refT == VarType["[]float64"] {
+		return ArrayEqual(val1.([]float64), val2.([]float64))
+	}
+
+	if refT == VarType["[]float32"] {
+		return ArrayEqual(val1.([]float32), val2.([]float32))
+	}
+
+	// map - basic
+	if refT == VarType["map[string]interface{}"] {
+		return MapEqual(val1.(map[string]interface{}), val2.(map[string]interface{}))
+	}
+
+	if refT == VarType["map[byte]interface{}"] {
+		return MapEqual(val1.(map[byte]interface{}), val2.(map[byte]interface{}))
+	}
+
+	if refT == VarType["map[rune]interface{}"] {
+		return MapEqual(val1.(map[rune]interface{}), val2.(map[rune]interface{}))
+	}
+
+	// map - int
+	if refT == VarType["map[int]interface{}"] {
+		return MapEqual(val1.(map[int]interface{}), val2.(map[int]interface{}))
+	}
+
+	if refT == VarType["map[int64]interface{}"] {
+		return MapEqual(val1.(map[int64]interface{}), val2.(map[int64]interface{}))
+	}
+
+	if refT == VarType["map[int32]interface{}"] {
+		return MapEqual(val1.(map[int32]interface{}), val2.(map[int32]interface{}))
+	}
+
+	if refT == VarType["map[int16]interface{}"] {
+		return MapEqual(val1.(map[int16]interface{}), val2.(map[int16]interface{}))
+	}
+
+	if refT == VarType["map[int8]interface{}"] {
+		return MapEqual(val1.(map[int8]interface{}), val2.(map[int8]interface{}))
+	}
+
+	// map - uint
+	if refT == VarType["map[uintptr]interface{}"] {
+		return MapEqual(val1.(map[uintptr]interface{}), val2.(map[uintptr]interface{}))
+	}
+
+	if refT == VarType["map[uint]interface{}"] {
+		return MapEqual(val1.(map[uint]interface{}), val2.(map[uint]interface{}))
+	}
+
+	if refT == VarType["map[uint64]interface{}"] {
+		return MapEqual(val1.(map[uint64]interface{}), val2.(map[uint64]interface{}))
+	}
+
+	if refT == VarType["map[uint32]interface{}"] {
+		return MapEqual(val1.(map[uint32]interface{}), val2.(map[uint32]interface{}))
+	}
+
+	if refT == VarType["map[uint16]interface{}"] {
+		return MapEqual(val1.(map[uint16]interface{}), val2.(map[uint16]interface{}))
+	}
+
+	if refT == VarType["map[uint8]interface{}"] {
+		return MapEqual(val1.(map[uint8]interface{}), val2.(map[uint8]interface{}))
+	}
+
+	// map - float
+	if refT == VarType["map[float64]interface{}"] {
+		return MapEqual(val1.(map[float64]interface{}), val2.(map[float64]interface{}))
+	}
+
+	if refT == VarType["map[float32]interface{}"] {
+		return MapEqual(val1.(map[float32]interface{}), val2.(map[float32]interface{}))
+	}
+
+	return false
 }
 
 // ToVarType grabs the type from another var as a reference, and runs the `ToType` with the ref type

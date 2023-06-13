@@ -77,6 +77,41 @@ func ContainsMapKey[T Hashable, J any](search map[T]J, key T) bool {
 	return ok
 }
 
+// ArrayEqual returns true if 2 arrays are equal and of the same length (even if they are in a different order)
+func ArrayEqual[T any](arr1 []T, arr2 []T, ignoreLength ...bool) bool {
+	if !(len(ignoreLength) != 0 && ignoreLength[0] == true) && len(arr1) != len(arr2) {
+		return false
+	}
+
+	for _, val1 := range arr1 {
+		hasMatch := false
+		for _, val2 := range arr2 {
+			if TypeEqual(val1, val2) {
+				hasMatch = true
+				break
+			}
+		}
+		if !hasMatch {
+			return false
+		}
+	}
+	return true
+}
+
+// MapEqual returns true if 2 maps are equal and of the same length (even if they are in a different order)
+func MapEqual[T Hashable, J any](map1 map[T]J, map2 map[T]J, ignoreLength ...bool) bool {
+	if !(len(ignoreLength) != 0 && ignoreLength[0] == true) && len(map1) != len(map2) {
+		return false
+	}
+	
+	for key1, val1 := range map1 {
+		if !TypeEqual(val1, map2[key1]) {
+			return false
+		}
+	}
+	return true
+}
+
 // TrimRepeats trims repeating adjacent characters and reduces them to one character
 //
 // @b: byte array to trim
