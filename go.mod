@@ -11,10 +11,10 @@ require (
 )
 
 require (
-	github.com/AspieSoft/go-syncterval v1.0.4 // indirect
-	github.com/AspieSoft/go-ttlcache v1.2.1 // indirect
+	github.com/AspieSoft/go-syncterval v1.0.5 // indirect
+	github.com/AspieSoft/go-ttlcache v1.2.2 // indirect
 	github.com/GRbit/go-pcre v1.0.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 )
