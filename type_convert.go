@@ -1232,6 +1232,413 @@ func ToType[T SupportedType](val interface{}) T {
 	return NullType[T]{}.Null
 }
 
+// ToVarTypeInterface attempts to convert an interface to match the unknown type of another interface
+//
+// this method is similar to the ToType method, but it simply returns nil if it cannot find the proper var type
+func ToVarTypeInterface(val interface{}, ref interface{}) interface{} {
+	// basic
+	refT := reflect.TypeOf(ref)
+
+	if refT == VarType["string"] {
+		return ToInterface{toString[string](val)}.Val
+	}
+
+	if refT == VarType["[]byte"] {
+		return ToInterface{toString[[]byte](val)}.Val
+	}
+
+	if refT == VarType["byte"] {
+		if b := toString[[]byte](val); len(b) != 0 {
+			return ToInterface{b[0]}.Val
+		}
+		return ToInterface{byte(0)}.Val
+	}
+
+	if refT == VarType["rune"] {
+		if b := toString[[]byte](val); len(b) != 0 {
+			return ToInterface{rune(b[0])}.Val
+		}
+		return ToInterface{rune(0)}.Val
+	}
+
+	if refT == VarType["bool"] {
+		return ToInterface{!IsZeroOfUnderlyingType(val)}.Val
+	}
+
+	// int
+	if refT == VarType["int"] {
+		return ToInterface{toNumber[int](val)}.Val
+	}
+
+	if refT == VarType["int64"] {
+		return ToInterface{toNumber[int64](val)}.Val
+	}
+
+	if refT == VarType["int32"] {
+		return ToInterface{toNumber[int32](val)}.Val
+	}
+
+	if refT == VarType["int16"] {
+		return ToInterface{toNumber[int16](val)}.Val
+	}
+
+	if refT == VarType["int8"] {
+		return ToInterface{toNumber[int8](val)}.Val
+	}
+
+	// uint
+	if refT == VarType["uintptr"] {
+		return ToInterface{toNumber[uintptr](val)}.Val
+	}
+
+	if refT == VarType["uint"] {
+		return ToInterface{toNumber[uint](val)}.Val
+	}
+
+	if refT == VarType["uint64"] {
+		return ToInterface{toNumber[uint64](val)}.Val
+	}
+
+	if refT == VarType["uint32"] {
+		return ToInterface{toNumber[uint32](val)}.Val
+	}
+
+	if refT == VarType["uint16"] {
+		return ToInterface{toNumber[uint16](val)}.Val
+	}
+
+	if refT == VarType["uint8"] {
+		return ToInterface{toNumber[uint8](val)}.Val
+	}
+
+	// float
+	if refT == VarType["float64"] {
+		return ToInterface{toNumber[float64](val)}.Val
+	}
+
+	if refT == VarType["float32"] {
+		return ToInterface{toNumber[float32](val)}.Val
+	}
+
+	// array - basic
+	if refT == VarType["interface{}"] {
+		return ToInterface{Conv.ToArray(val)}.Val
+	}
+
+	if refT == VarType["[]string"] {
+		r := Conv.ToArray(val)
+		a := make([]string, len(r))
+		for i, v := range r {
+			a[i] = toString[string](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[][]byte"] {
+		r := Conv.ToArray(val)
+		a := make([][]byte, len(r))
+		for i, v := range r {
+			a[i] = toString[[]byte](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]rune"] {
+		r := Conv.ToArray(val)
+		a := make([]rune, len(r))
+		for i, v := range r {
+			if b := toString[[]byte](v); len(b) != 0 {
+				a[i] = rune(b[0])
+			}else{
+				a[i] = rune(toNumber[int32](v))
+			}
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]bool"] {
+		r := Conv.ToArray(val)
+		a := make([]bool, len(r))
+		for i, v := range r {
+			a[i] = !IsZeroOfUnderlyingType(v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	// array - int
+	if refT == VarType["[]int"] {
+		r := Conv.ToArray(val)
+		a := make([]int, len(r))
+		for i, v := range r {
+			a[i] = toNumber[int](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]int64"] {
+		r := Conv.ToArray(val)
+		a := make([]int64, len(r))
+		for i, v := range r {
+			a[i] = toNumber[int64](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]int32"] {
+		r := Conv.ToArray(val)
+		a := make([]int32, len(r))
+		for i, v := range r {
+			a[i] = toNumber[int32](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]int16"] {
+		r := Conv.ToArray(val)
+		a := make([]int16, len(r))
+		for i, v := range r {
+			a[i] = toNumber[int16](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]int8"] {
+		r := Conv.ToArray(val)
+		a := make([]int8, len(r))
+		for i, v := range r {
+			a[i] = toNumber[int8](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	// array - uint
+	if refT == VarType["[]uintptr"] {
+		r := Conv.ToArray(val)
+		a := make([]uintptr, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uintptr](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]uint"] {
+		r := Conv.ToArray(val)
+		a := make([]uint, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uint](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]uint64"] {
+		r := Conv.ToArray(val)
+		a := make([]uint64, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uint64](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]uint32"] {
+		r := Conv.ToArray(val)
+		a := make([]uint32, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uint32](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]uint16"] {
+		r := Conv.ToArray(val)
+		a := make([]uint16, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uint16](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]uint8"] {
+		r := Conv.ToArray(val)
+		a := make([]uint8, len(r))
+		for i, v := range r {
+			a[i] = toNumber[uint8](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	// array - float
+	if refT == VarType["[]float64"] {
+		r := Conv.ToArray(val)
+		a := make([]float64, len(r))
+		for i, v := range r {
+			a[i] = toNumber[float64](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	if refT == VarType["[]float32"] {
+		r := Conv.ToArray(val)
+		a := make([]float32, len(r))
+		for i, v := range r {
+			a[i] = toNumber[float32](v)
+		}
+		return ToInterface{a}.Val
+	}
+
+	// map - basic
+	if refT == VarType["map[string]interface{}"] {
+		return ToInterface{Conv.ToMap(val)}.Val
+	}
+
+	if refT == VarType["map[byte]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[byte]interface{}, len(r))
+		for i, v := range r {
+			if b := toString[[]byte](i); len(b) != 0 {
+				m[b[0]] = v
+			}else{
+				m[byte(toNumber[int32](i))] = v
+			}
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[rune]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[rune]interface{}, len(r))
+		for i, v := range r {
+			if b := toString[[]byte](i); len(b) != 0 {
+				m[rune(b[0])] = v
+			}else{
+				m[rune(byte(toNumber[int32](i)))] = v
+			}
+		}
+		return ToInterface{m}.Val
+	}
+
+	// map - int
+	if refT == VarType["map[int]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[int]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[int](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[int64]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[int64]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[int64](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[int32]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[int32]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[int32](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[int16]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[int16]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[int16](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[int8]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[int8]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[int8](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	// map - uint
+	if refT == VarType["map[uintptr]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uintptr]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uintptr](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[uint]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uint]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uint](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[uint64]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uint64]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uint64](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[uint32]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uint32]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uint32](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[uint16]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uint16]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uint16](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[uint8]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[uint8]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[uint8](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	// map - float
+	if refT == VarType["map[float64]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[float64]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[float64](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	if refT == VarType["map[float32]interface{}"] {
+		r := Conv.ToMap(val)
+		m := make(map[float32]interface{}, len(r))
+		for i, v := range r {
+			m[toNumber[float32](i)] = v
+		}
+		return ToInterface{m}.Val
+	}
+
+	return nil
+}
+
 // ToVarType grabs the type from another var as a reference, and runs the `ToType` with the ref type
 func ToVarType[T SupportedType](val interface{}, ref T) T {
 	return ToType[T](val)
