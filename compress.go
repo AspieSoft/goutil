@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"fmt"
 	"io"
 
 	"github.com/andybalholm/brotli"
@@ -37,7 +36,7 @@ func (comp *compGzip) Zip(msg []byte, quality ...int) ([]byte, error) {
 	var b bytes.Buffer
 	w, err := gzip.NewWriterLevel(&b, q)
 	if err != nil {
-		return []byte{}, err
+		w = gzip.NewWriter(&b)
 	}
 
 	if _, err := w.Write([]byte(msg)); err != nil {
@@ -104,7 +103,6 @@ func (comp *compBrotli) UnZip(b []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	fmt.Println(string(s))
 	return s, nil
 }
 
