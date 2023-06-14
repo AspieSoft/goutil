@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"fmt"
 	"io"
 
 	"github.com/andybalholm/brotli"
@@ -20,18 +21,35 @@ type compSmaz struct {}
 var SMAZ *compSmaz = &compSmaz{}
 
 // GZIP.Zip is Gzip compression to a utf8 []byte
-func (comp *compGzip) Zip(msg []byte) ([]byte, error) {
+//
+// @quality: 1-9 (1 = fastest) (9 = best)
+func (comp *compGzip) Zip(msg []byte, quality ...int) ([]byte, error) {
+	q := 6
+	if len(quality) != 0 {
+		q := quality[0]
+		if q < 1 {
+			q = 1
+		}else if q > 9 {
+			q = 9
+		}
+	}
+
 	var b bytes.Buffer
-	gz := gzip.NewWriter(&b)
-	if _, err := gz.Write([]byte(msg)); err != nil {
+	w, err := gzip.NewWriterLevel(&b, q)
+	if err != nil {
 		return []byte{}, err
 	}
-	if err := gz.Flush(); err != nil {
+
+	if _, err := w.Write([]byte(msg)); err != nil {
 		return []byte{}, err
 	}
-	if err := gz.Close(); err != nil {
+	if err := w.Flush(); err != nil {
 		return []byte{}, err
 	}
+	if err := w.Close(); err != nil {
+		return []byte{}, err
+	}
+
 	return b.Bytes(), nil
 }
 
@@ -53,7 +71,7 @@ func (comp *compGzip) UnZip(b []byte) ([]byte, error) {
 //
 // @quality: 0-11 (0 = fastest) (11 = best)
 func (comp *compBrotli) Zip(msg []byte, quality ...int) ([]byte, error) {
-	q := 11
+	q := 6
 	if len(quality) != 0 {
 		q := quality[0]
 		if q < 0 {
@@ -64,8 +82,7 @@ func (comp *compBrotli) Zip(msg []byte, quality ...int) ([]byte, error) {
 	}
 
 	var b bytes.Buffer
-	w := brotli.NewWriter(&b)
-	brotli.NewWriterLevel(w, q)
+	w := brotli.NewWriterLevel(&b, q)
 	if _, err := w.Write([]byte(msg)); err != nil {
 		return []byte{}, err
 	}
@@ -87,6 +104,7 @@ func (comp *compBrotli) UnZip(b []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	fmt.Println(string(s))
 	return s, nil
 }
 
