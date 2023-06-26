@@ -27,7 +27,7 @@ func (sanitize *clean) Bytes(b []byte) []byte {
 //
 // Clean.Str sanitizes a string to valid UTF-8
 func (sanitize *clean) Array(data []interface{}) []interface{} {
-	cData := []interface{}{}
+	cData := make([]interface{}, len(data))
 	for key, val := range data {
 		t := reflect.TypeOf(val)
 		if t == VarType["string"] {
