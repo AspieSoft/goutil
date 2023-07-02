@@ -119,7 +119,7 @@ func (crypt *cryptHash) Compare(text []byte, compare []byte, key []byte) bool {
 
 // RandBytes generates random bytes using crypto/rand
 //
-// @exclude[0] allows you can to pass an optional []byte to ensure that set of chars will not be included in the output string
+// @exclude[0] allows you to pass an optional []byte to ensure that set of chars will not be included in the output string
 //
 // @exclude[1] provides a replacement string to put in place of the unwanted chars
 //
