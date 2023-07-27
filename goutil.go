@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/AspieSoft/go-regex/v4"
+	"github.com/AspieSoft/go-regex/v5/re2-opt"
 )
 
 type Hashable interface {

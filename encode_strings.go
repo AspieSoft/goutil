@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/AspieSoft/go-regex/v4"
+	"github.com/AspieSoft/go-regex/v5/re2-opt"
 )
 
 type encodeHtml struct {}
@@ -22,7 +22,7 @@ var regEscFixAmp *regex.Regexp = regex.Comp(`&amp;(amp;)*`)
 //
 // Also prevents and removes &amp;amp; from results
 func (encHtml *encodeHtml) Escape(html []byte) []byte {
-	html = regEscHTML.RepFuncRef(&html, func(data func(int) []byte) []byte {
+	html = regEscHTML.RepFunc(html, func(data func(int) []byte) []byte {
 		if bytes.Equal(data(0), []byte("<")) {
 			return []byte("&lt;")
 		} else if bytes.Equal(data(0), []byte(">")) {
@@ -30,7 +30,7 @@ func (encHtml *encodeHtml) Escape(html []byte) []byte {
 		}
 		return []byte("&amp;")
 	})
-	return regEscFixAmp.RepStrRef(&html, []byte("&amp;"))
+	return regEscFixAmp.RepStr(html, []byte("&amp;"))
 }
 
 var regEscHTMLArgs *regex.Regexp = regex.Comp(`([\\]*)([\\"'\'])`)
@@ -42,7 +42,7 @@ func (encHtml *encodeHtml) EscapeArgs(html []byte, quote ...byte) []byte {
 		quote = []byte("\"'`")
 	}
 
-	return regEscHTMLArgs.RepFuncRef(&html, func(data func(int) []byte) []byte {
+	return regEscHTMLArgs.RepFunc(html, func(data func(int) []byte) []byte {
 		if len(data(1)) % 2 == 0 && bytes.ContainsRune(quote, rune(data(2)[0])) {
 			// return append([]byte("\\"), data(2)...)
 			return regex.JoinBytes(data(1), '\\', data(2))

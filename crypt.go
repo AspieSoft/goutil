@@ -10,7 +10,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/AspieSoft/go-regex/v4"
+	regex "github.com/AspieSoft/go-regex/v5/re2-opt"
 )
 
 type crypt struct {
@@ -133,13 +133,13 @@ func (crypt *crypt) RandBytes(size int, exclude ...[]byte) []byte {
 		if exclude[0] == nil || len(exclude[0]) == 0 {
 			b = regex.Comp(`[^\w_-]`).RepStr(b, exclude[1])
 		}else{
-			b = regex.Comp(`[%1]`, string(exclude[0])).RepStr(b, exclude[1])
+			b = regex.Comp(`[`+regex.Escape(string(exclude[0]))+`]`).RepStr(b, exclude[1])
 		}
 	}else if len(exclude) >= 1 {
 		if exclude[0] == nil || len(exclude[0]) == 0 {
 			b = regex.Comp(`[^\w_-]`).RepStr(b, []byte{})
 		}else{
-			b = regex.Comp(`[%1]`, string(exclude[0])).RepStr(b, []byte{})
+			b = regex.Comp(`[`+regex.Escape(string(exclude[0]))+`]`).RepStr(b, []byte{})
 		}
 	}
 
@@ -152,13 +152,13 @@ func (crypt *crypt) RandBytes(size int, exclude ...[]byte) []byte {
 			if exclude[0] == nil || len(exclude[0]) == 0 {
 				a = regex.Comp(`[^\w_-]`).RepStr(a, exclude[1])
 			}else{
-				a = regex.Comp(`[%1]`, string(exclude[0])).RepStr(a, exclude[1])
+				a = regex.Comp(`[`+regex.Escape(string(exclude[0]))+`]`).RepStr(a, exclude[1])
 			}
 		}else if len(exclude) >= 1 {
 			if exclude[0] == nil || len(exclude[0]) == 0 {
 				a = regex.Comp(`[^\w_-]`).RepStr(a, []byte{})
 			}else{
-				a = regex.Comp(`[%1]`, string(exclude[0])).RepStr(a, []byte{})
+				a = regex.Comp(`[`+regex.Escape(string(exclude[0]))+`]`).RepStr(a, []byte{})
 			}
 		}
 
