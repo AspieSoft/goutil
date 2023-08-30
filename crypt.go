@@ -10,7 +10,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/AspieSoft/go-regex-re2"
+	"github.com/AspieSoft/go-regex/v5/re2-opt"
 )
 
 type crypt struct {
