@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AspieSoft/go-regex/v5/re2-opt"
+	"github.com/AspieSoft/go-regex-re2"
 	"github.com/alphadose/haxmap"
 	"github.com/fsnotify/fsnotify"
 )

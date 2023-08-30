@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/AspieSoft/go-regex/v5/re2-opt"
+	"github.com/AspieSoft/go-regex-re2"
 )
 
 type encodeHtml struct {}
