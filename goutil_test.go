@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/AspieSoft/go-regex-re2"
+	"github.com/AspieSoft/go-regex-re2/v2"
 )
 
 func Test(t *testing.T){
