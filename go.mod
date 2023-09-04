@@ -1,11 +1,10 @@
-module github.com/AspieSoft/goutil/v5
+module github.com/AspieSoft/goutil/v6
 
 go 1.18
 
 require (
 	github.com/AspieSoft/go-regex-re2/v2 v2.0.8
 	github.com/alphadose/haxmap v1.3.0
-	github.com/andybalholm/brotli v1.0.5
 	github.com/cespare/go-smaz v1.0.0
 	github.com/fsnotify/fsnotify v1.6.0
 )

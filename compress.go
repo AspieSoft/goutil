@@ -6,15 +6,14 @@ import (
 	"encoding/base64"
 	"io"
 
-	"github.com/andybalholm/brotli"
 	"github.com/cespare/go-smaz"
 )
 
 type compGzip struct {}
 var GZIP *compGzip = &compGzip{}
 
-type compBrotli struct {}
-var BROTLI *compBrotli = &compBrotli{}
+/* type compBrotli struct {}
+var BROTLI *compBrotli = &compBrotli{} */
 
 type compSmaz struct {}
 var SMAZ *compSmaz = &compSmaz{}
@@ -66,7 +65,7 @@ func (comp *compGzip) UnZip(b []byte) ([]byte, error) {
 	return s, nil
 }
 
-// BROTLI.Zip Compresses with brotli to a utf8 []byte
+/* // BROTLI.Zip Compresses with brotli to a utf8 []byte
 //
 // @quality: 0-11 (0 = fastest) (11 = best)
 func (comp *compBrotli) Zip(msg []byte, quality ...int) ([]byte, error) {
@@ -104,7 +103,7 @@ func (comp *compBrotli) UnZip(b []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 	return s, nil
-}
+} */
 
 // SMAZ.Zip Compresses with SMAZ from a utf8 []byte
 //

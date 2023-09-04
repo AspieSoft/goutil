@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
+	// "github.com/AspieSoft/goutil/v5/brotli"
 )
 
 func Test(t *testing.T){
@@ -74,17 +75,17 @@ func TestCompress(t *testing.T){
 		t.Error("[", msg, "]\n", errors.New("Gzip did not return the correct output"))
 	}
 
-	comp, err = BROTLI.Zip([]byte(msg), 11)
+	/* comp, err = brotli.Zip([]byte(msg), 11)
 	if err != nil {
 		t.Error(err)
 	}
-	dec, err = BROTLI.UnZip(comp)
+	dec, err = brotli.UnZip(comp)
 	if err != nil {
 		t.Error(err)
 	}
 	if string(dec) != msg {
 		t.Error("[", msg, "]\n", errors.New("Brotli did not return the correct output"))
-	}
+	} */
 
 	comp = SMAZ.Zip([]byte(msg), true)
 	dec, err = SMAZ.UnZip(comp)
