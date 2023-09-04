@@ -49,7 +49,7 @@ var regDirEndSlash *regex.Regexp = regex.Comp(`[\\/][^\\/]*$`)
 //
 // @search is what file you want to search from
 func (fs *fileSystem) GetFileFromParent(root string, start string, search string) (string, bool) {
-	dir := string(regDirEndSlash.RepStr([]byte(start), []byte{}))
+	dir := string(regDirEndSlash.RepStrLit([]byte(start), []byte{}))
 	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
 		return "", false
 	}

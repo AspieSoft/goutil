@@ -30,7 +30,7 @@ func (encHtml *encodeHtml) Escape(html []byte) []byte {
 		}
 		return []byte("&amp;")
 	})
-	return regEscFixAmp.RepStr(html, []byte("&amp;"))
+	return regEscFixAmp.RepStrLit(html, []byte("&amp;"))
 }
 
 var regEscHTMLArgs *regex.Regexp = regex.Comp(`([\\]*)([\\"'\'])`)
