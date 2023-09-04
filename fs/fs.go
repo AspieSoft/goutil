@@ -1,4 +1,4 @@
-package goutil
+package fs
 
 import (
 	"bufio"
@@ -15,16 +15,13 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-type fileSystem struct {}
-var FS *fileSystem = &fileSystem{}
-
 // linux package installer
 type LinuxPKG struct {
 	sudo bool
 }
 
 // JoinPath joins multiple file types with safety from backtracking
-func (fs *fileSystem) JoinPath(path ...string) (string, error) {
+func JoinPath(path ...string) (string, error) {
 	resPath, err := filepath.Abs(string(path[0]))
 	if err != nil {
 		return "", err
@@ -48,7 +45,7 @@ var regDirEndSlash *regex.Regexp = regex.Comp(`[\\/][^\\/]*$`)
 // @start is the lowest level to start searching from (if a directory is passed, it will not be included in your search)
 //
 // @search is what file you want to search from
-func (fs *fileSystem) GetFileFromParent(root string, start string, search string) (string, bool) {
+func GetFileFromParent(root string, start string, search string) (string, bool) {
 	dir := string(regDirEndSlash.RepStrLit([]byte(start), []byte{}))
 	if len(dir) == 0 || dir == root || !strings.HasPrefix(dir, root) {
 		return "", false
@@ -58,7 +55,7 @@ func (fs *fileSystem) GetFileFromParent(root string, start string, search string
 		for _, file := range dirList {
 			name := file.Name()
 			if name == search {
-				if path, err := fs.JoinPath(string(dir), name); err == nil {
+				if path, err := JoinPath(string(dir), name); err == nil {
 					return path, true
 				}
 				return "", false
@@ -66,13 +63,12 @@ func (fs *fileSystem) GetFileFromParent(root string, start string, search string
 		}
 	}
 
-	return fs.GetFileFromParent(root, dir, search)
+	return GetFileFromParent(root, dir, search)
 }
 
 
 // A watcher instance for the `FS.FileWatcher` method
 type FileWatcher struct {
-	fs *fileSystem
 	watcherList *haxmap.Map[string, *watcherObj]
 
 	// when a file changes
@@ -113,8 +109,8 @@ type watcherObj struct {
 	close *bool
 }
 
-func (fs *fileSystem) FileWatcher() *FileWatcher {
-	return &FileWatcher{fs: fs, watcherList: haxmap.New[string, *watcherObj]()}
+func Watcher() *FileWatcher {
+	return &FileWatcher{watcherList: haxmap.New[string, *watcherObj]()}
 }
 
 // WatchDir watches the files in a directory and its subdirectories for changes
@@ -183,7 +179,7 @@ func (fw *FileWatcher) watchDirSub(watcher *fsnotify.Watcher, dir string){
 
 	for _, file := range files {
 		if file.IsDir() {
-			if path, err := fw.fs.JoinPath(dir, file.Name()); err == nil {
+			if path, err := JoinPath(dir, file.Name()); err == nil {
 				watcher.Add(path)
 				fw.watchDirSub(watcher, path)
 			}

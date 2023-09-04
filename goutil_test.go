@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
-	// "github.com/AspieSoft/goutil/v5/brotli"
 )
 
 func Test(t *testing.T){
@@ -25,75 +24,8 @@ func TestBasic(t *testing.T){
 		t.Error("[", val, "]\n", errors.New("ToType[float64] Method Failed"))
 	}
 
-	if val, err := FS.JoinPath("test", "1"); err != nil {
-		t.Error("[", val, "]\n", errors.New("JoinPath Method Failed"))
-	}
-
-	if val, err := FS.JoinPath("test", "../out/of/root"); err == nil {
-		t.Error("[", val, "]\n", errors.New("JoinPath Method Leaked Outsite The Root"))
-	}
-
 	if args := MapArgs([]string{"arg1", "--key=value", "--bool", "-flags"}); args["0"] != "arg1" || args["bool"] != "true" || args["key"] != "value" || args["f"] != "true" || args["l"] != "true" || args["s"] != "true" {
 		t.Error(args, "\n", errors.New("MapArgs Produced The Wrong Output"))
-	}
-}
-
-func TestEncrypt(t *testing.T){
-	msg := "This is a test"
-	enc, err := Crypt.CFB.Encrypt([]byte(msg), []byte("MyKey123"))
-	if err != nil {
-		t.Error(err)
-	}
-	dec, err := Crypt.CFB.Decrypt(enc, []byte("MyKey123"))
-	if err != nil {
-		t.Error(err)
-	}
-	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("Decrypt did not return the correct output"))
-	}
-
-	hash, err := Crypt.Hash.New([]byte(msg), []byte("MyKey123"))
-	if err != nil {
-		t.Error(err)
-	}
-	if !Crypt.Hash.Compare([]byte(msg), hash, []byte("MyKey123")) {
-		t.Error("[", msg, "]\n", errors.New("CompareHash did not return true"))
-	}
-}
-
-func TestCompress(t *testing.T){
-	msg := "This is a test"
-	comp, err := GZIP.Zip([]byte(msg))
-	if err != nil {
-		t.Error(err)
-	}
-	dec, err := GZIP.UnZip(comp)
-	if err != nil {
-		t.Error(err)
-	}
-	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("Gzip did not return the correct output"))
-	}
-
-	/* comp, err = brotli.Zip([]byte(msg), 11)
-	if err != nil {
-		t.Error(err)
-	}
-	dec, err = brotli.UnZip(comp)
-	if err != nil {
-		t.Error(err)
-	}
-	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("Brotli did not return the correct output"))
-	} */
-
-	comp = SMAZ.Zip([]byte(msg), true)
-	dec, err = SMAZ.UnZip(comp)
-	if err != nil {
-		t.Error(err)
-	}
-	if string(dec) != msg {
-		t.Error("[", msg, "]\n", errors.New("SMAZ did not return the correct output"))
 	}
 }
 

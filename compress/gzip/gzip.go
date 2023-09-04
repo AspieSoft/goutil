@@ -1,28 +1,31 @@
-package brotli
+package gzip
 
 import (
 	"bytes"
+	"compress/gzip"
 	"io"
-
-	"github.com/andybalholm/brotli"
 )
 
-// BROTLI.Zip Compresses with brotli to a utf8 []byte
+// gzip.Zip is Gzip compression to a utf8 []byte
 //
-// @quality: 0-11 (0 = fastest) (11 = best)
+// @quality: 1-9 (1 = fastest) (9 = best)
 func Zip(msg []byte, quality ...int) ([]byte, error) {
 	q := 6
 	if len(quality) != 0 {
 		q := quality[0]
-		if q < 0 {
-			q = 0
-		}else if q > 11 {
-			q = 11
+		if q < 1 {
+			q = 1
+		}else if q > 9 {
+			q = 9
 		}
 	}
 
 	var b bytes.Buffer
-	w := brotli.NewWriterLevel(&b, q)
+	w, err := gzip.NewWriterLevel(&b, q)
+	if err != nil {
+		w = gzip.NewWriter(&b)
+	}
+
 	if _, err := w.Write([]byte(msg)); err != nil {
 		return []byte{}, err
 	}
@@ -36,10 +39,13 @@ func Zip(msg []byte, quality ...int) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// BROTLI.UnZip Decompresses with brotli from a utf8 []byte
+// gzip.UnZip is Gzip decompression from a utf8 []byte
 func UnZip(b []byte) ([]byte, error) {
 	rdata := bytes.NewReader(b)
-	r := brotli.NewReader(rdata)
+	r, err := gzip.NewReader(rdata)
+	if err != nil {
+		return []byte{}, err
+	}
 	s, err := io.ReadAll(r)
 	if err != nil {
 		return []byte{}, err

@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/brotli
+module github.com/AspieSoft/goutil/compress/brotli
 
 go 1.20
 

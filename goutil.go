@@ -103,7 +103,7 @@ func MapEqual[T Hashable, J any](map1 map[T]J, map2 map[T]J, ignoreLength ...boo
 	if !(len(ignoreLength) != 0 && ignoreLength[0] == true) && len(map1) != len(map2) {
 		return false
 	}
-	
+
 	for key1, val1 := range map1 {
 		if !TypeEqual(val1, map2[key1]) {
 			return false

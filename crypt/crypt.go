@@ -1,4 +1,4 @@
-package goutil
+package crypt
 
 import (
 	"crypto/aes"
@@ -13,22 +13,14 @@ import (
 	"github.com/AspieSoft/go-regex-re2/v2"
 )
 
-type crypt struct {
-	// AES-CFB
-	CFB cryptCFB
-
-	// HMAC - SHA256
-	Hash cryptHash
-}
-
 type cryptCFB struct {}
 type cryptHash struct {}
 
-// Encryption
-var Crypt *crypt = &crypt{
-	cryptCFB{},
-	cryptHash{},
-}
+// Encryption: AES-CFB
+var CFB cryptCFB
+
+// Hashing: HMAC - SHA256
+var Hash cryptHash
 
 // Encrypt runs AES-CFB Encryption
 //
@@ -124,7 +116,7 @@ func (crypt *cryptHash) Compare(text []byte, compare []byte, key []byte) bool {
 // @exclude[1] provides a replacement string to put in place of the unwanted chars
 //
 // @exclude[2:] is currently ignored
-func (crypt *crypt) RandBytes(size int, exclude ...[]byte) []byte {
+func RandBytes(size int, exclude ...[]byte) []byte {
 	b := make([]byte, size)
 	rand.Read(b)
 	b = []byte(base64.URLEncoding.EncodeToString(b))
