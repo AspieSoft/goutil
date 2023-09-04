@@ -9,7 +9,7 @@ This module simply adds a variety of useful functions in an easy to use way.
 ## Installation
 
 ```shell script
-  go get github.com/AspieSoft/goutil/v5
+  go get github.com/AspieSoft/goutil/v7
 ```
 
 ## Usage
@@ -17,25 +17,48 @@ This module simply adds a variety of useful functions in an easy to use way.
 ```go
 
 import (
-  "github.com/AspieSoft/goutil/v5"
+  "github.com/AspieSoft/goutil/v7"
+
+  // other optional utility files
+
+  // filesystem
+  "github.com/AspieSoft/goutil/fs"
+
+  // encryption
+  "github.com/AspieSoft/goutil/crypt"
+
+  // compression
+  "github.com/AspieSoft/goutil/compress/gzip"
+  "github.com/AspieSoft/goutil/compress/brotli"
+  "github.com/AspieSoft/goutil/compress/smaz"
 )
 
 func main(){
-  goutil.FS.JoinPath("root", "file") // a safer way to join 2 file paths without backtracking
+  fs.JoinPath("root", "file") // a safer way to join 2 file paths without backtracking
 
   goutil.Contains([]any, any) // checks if an array contains a value
 
+
   // simple AES-CFB Encryption
-  encrypted := goutil.Crypt.CFB.Encrypt([]byte("my message"), []byte("password"))
-  goutil.Crypt.CFB.Decrypt(encrypted, []byte("password"))
+  encrypted := crypt.CFB.Encrypt([]byte("my message"), []byte("password"))
+  crypt.CFB.Decrypt(encrypted, []byte("password"))
+
 
   // simple gzip compression for strings
   // (also supports brotli and smaz)
-  compressed := goutil.GZIP.Zip([]byte("my long string"))
-  goutil.GZIP.UnZip(compressed)
+  compressed := gzip.Zip([]byte("my long string"))
+  gzip.UnZip(compressed)
+
+
+  // convert any type to something else
+  MyStr := goutil.ToType[string](MyByteArray)
+  MyInt := goutil.ToType[int]("1") // this will return `MyInt == 1`
+  MyUInt := goutil.ToType[uint32]([]byte{'2'}) // this will return `MyUInt == 2`
+  MyBool := goutil.ToType[bool](1) // this will return `MyBool == true`
+
 
   // watch a directory recursively
-  watcher := goutil.FS.FileWatcher()
+  watcher := fs.FileWatcher()
 
   watcher.OnFileChange = func(path, op string) {
     // do something when a file changes
