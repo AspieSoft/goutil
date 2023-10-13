@@ -12,6 +12,6 @@ require (
 	github.com/AspieSoft/go-syncterval v1.0.5 // indirect
 	github.com/AspieSoft/go-ttlcache v1.2.2 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
+	golang.org/x/sys v0.13.0 // indirect
 )
