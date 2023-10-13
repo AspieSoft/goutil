@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/fs
+module github.com/AspieSoft/goutil/fs/v2
 
 go 1.20
 

@@ -7,4 +7,6 @@ use (
 	./compress/smaz
 	./crypt
 	./fs
+	./bash
+	./cpu
 )

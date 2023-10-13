@@ -1,12 +1,10 @@
 package fs
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,11 +13,6 @@ import (
 	"github.com/alphadose/haxmap"
 	"github.com/fsnotify/fsnotify"
 )
-
-// linux package installer
-type LinuxPKG struct {
-	sudo bool
-}
 
 // JoinPath joins multiple file types with safety from backtracking
 func JoinPath(path ...string) (string, error) {
@@ -247,141 +240,4 @@ func (fw *FileWatcher) Wait(){
 	for fw.watcherList.Len() != 0 {
 		time.Sleep(100 * time.Nanosecond)
 	}
-}
-
-
-// InstallLinuxPkg attempts to install a linux package
-//
-// this method will also resolve the sudo command and ask for a user password if needed
-//
-// this method will not attempt to run an install, if it finds the package is already installed
-func (linuxPKG *LinuxPKG) InstallLinuxPkg(pkg []string, man ...string){
-	if !linuxPKG.HasLinuxPkg(pkg) {
-		var pkgMan string
-		if len(man) != 0 {
-			pkgMan = man[0]
-		}else{
-			pkgMan = linuxPKG.GetLinuxInstaller([]string{`apt-get`, `apt`, `yum`})
-		}
-
-		var cmd *exec.Cmd
-		if linuxPKG.sudo {
-			cmd = exec.Command(`sudo`, append([]string{pkgMan, `install`, `-y`}, pkg...)...)
-		}else{
-			cmd = exec.Command(pkgMan, append([]string{`install`, `-y`}, pkg...)...)
-		}
-
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return
-		}
-
-		go (func() {
-			out := bufio.NewReader(stdout)
-			for {
-				s, err := out.ReadString('\n')
-				if err == nil {
-					fmt.Println(s)
-				}
-			}
-		})()
-
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			return
-		}
-
-		go (func() {
-			out := bufio.NewReader(stderr)
-			for {
-				s, err := out.ReadString('\n')
-				if err == nil {
-					fmt.Println(s)
-				}
-			}
-		})()
-
-		cmd.Run()
-	}
-}
-
-// HasLinuxPkg attempt to check if a linux package is installed
-func (linuxPKG *LinuxPKG) HasLinuxPkg(pkg []string) bool {
-	for _, name := range pkg {
-		hasPackage := false
-
-		var cmd *exec.Cmd
-		if linuxPKG.sudo {
-			cmd = exec.Command(`sudo`, `dpkg`, `-s`, name)
-		}else{
-			cmd = exec.Command(`dpkg`, `-s`, name)
-		}
-
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return true
-		}
-		go (func() {
-			out := bufio.NewReader(stdout)
-			for {
-				_, err := out.ReadString('\n')
-				if err == nil {
-					hasPackage = true
-				}
-			}
-		})()
-		for i := 0; i < 3; i++ {
-			cmd.Run()
-			if hasPackage {
-				break
-			}
-		}
-		if !hasPackage {
-			return false
-		}
-	}
-
-	return true
-}
-
-// GetLinuxInstaller attempt to find out what package manager a linux distro is using or has available
-func (linuxPKG *LinuxPKG) GetLinuxInstaller(man []string) string {
-	hasInstaller := ""
-
-	for _, m := range man {
-
-		var cmd *exec.Cmd
-		if linuxPKG.sudo {
-			cmd = exec.Command(`sudo`, `dpkg`, `-s`, m)
-		}else{
-			cmd = exec.Command(`dpkg`, `-s`, m)
-		}
-
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			continue
-		}
-		go (func() {
-			out := bufio.NewReader(stdout)
-			for {
-				_, err := out.Peek(1)
-				if err == nil {
-					hasInstaller = m
-				}
-			}
-		})()
-
-		for i := 0; i < 3; i++ {
-			cmd.Run()
-			if hasInstaller != "" {
-				break
-			}
-		}
-
-		if hasInstaller != "" {
-			break
-		}
-	}
-
-	return hasInstaller
 }
