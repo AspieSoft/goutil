@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-// Run will run aa bash command based on the given args
+// Run will run a bash command based on the given args
 //
 // note: stdin is piped to the os logs
 //
@@ -144,4 +144,38 @@ func PipeMultiDir(args ...[]string){
 
 	cmd[len(cmd)-1].Start()
 	cmd[len(cmd)-1].Wait()
+}
+
+// RunRaw will run an unescaped (unquoted) bash command
+//
+// This used `bash -c` to get around the auto quotes added by golang
+//
+// note: user input is Not recommended for this method
+//
+// note: stdin is piped to the os logs
+//
+// @dir: a directory to run the command in (set to an empty string to disable)
+//
+// @env: an optional list of environment variables (set to nil to disable)
+//
+// @liveOutput[0]: set to true to pipe stdout and stderr to the os
+//
+// @liveOutput[1]: set to false if you only want to pipe stdout to the os, and keep stderr hidden
+func RunRaw(cmdStr string, dir string, env []string, liveOutput ...bool) (output []byte, err error) {
+	cmd := exec.Command(`bash`, `-c`, cmdStr)
+	if dir != "" {
+		cmd.Dir = dir
+	}
+	if env != nil {
+		cmd.Env = env
+	}
+	cmd.Stdin = os.Stdin
+	if len(liveOutput) != 0 && liveOutput[0] == true {
+		cmd.Stdout = os.Stdout
+		if len(liveOutput) <= 1 || liveOutput[1] == true {
+			cmd.Stderr = os.Stderr
+		}
+		return []byte{}, cmd.Run()
+	}
+	return cmd.CombinedOutput()
 }

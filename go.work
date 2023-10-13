@@ -8,5 +8,5 @@ use (
 	./crypt
 	./fs
 	./bash
-	./cpu
+	./cputemp
 )
