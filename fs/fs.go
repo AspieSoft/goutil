@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -86,6 +87,506 @@ func GetFileFromParent(root string, start string, search string) (string, bool) 
 
 	return GetFileFromParent(root, dir, search)
 }
+
+// ReplaceText replaces a []byte with a new one in a file
+//
+// @all: if true, will replace all text matching @search,
+// if false, will only replace the first occurrence
+func ReplaceText(name string, search []byte, rep []byte, all bool) error {
+	stat, err := os.Stat(name)
+	if err != nil || stat.IsDir() {
+		return err
+	}
+
+	file, err := os.OpenFile(name, os.O_RDWR, stat.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var found bool
+
+	l := int64(len(search))
+	i := int64(0)
+
+	buf := make([]byte, l)
+	size, err := file.ReadAt(buf, i)
+	buf = buf[:size]
+	for err == nil {
+		if bytes.Equal(buf, search) {
+			found = true
+
+			rl := int64(len(rep))
+			if rl == l {
+				file.WriteAt(rep, i)
+				file.Sync()
+			}else if rl < l {
+				file.WriteAt(rep, i)
+				rl = l - rl
+
+				j := i+l
+
+				b := make([]byte, 1024)
+				s, e := file.ReadAt(b, j)
+				b = b[:s]
+
+				for e == nil {
+					file.WriteAt(b, j-rl)
+					j += 1024
+					b = make([]byte, 1024)
+					s, e = file.ReadAt(b, j)
+					b = b[:s]
+				}
+
+				if s != 0 {
+					file.WriteAt(b, j-rl)
+					j += int64(s)
+				}
+
+				file.Truncate(j-rl)
+				file.Sync()
+			}else if rl > l {
+				rl -= l
+
+				dif := int64(1024)
+				if rl > dif {
+					dif = rl
+				}
+
+				j := i+l
+
+				b := make([]byte, dif)
+				s, e := file.ReadAt(b, j)
+				bw := b[:s]
+
+				file.WriteAt(rep, i)
+				j += rl
+
+				for e == nil {
+					b = make([]byte, dif)
+					s, e = file.ReadAt(b, j+dif-rl)
+				
+					file.WriteAt(bw, j)
+					bw = b[:s]
+
+					j += dif
+				}
+
+				file.WriteAt(bw, j)
+				file.Sync()
+			}
+
+			if !all {
+				break
+			}
+		}
+
+		i++
+		s := search[:l-1]
+
+		buf = make([]byte, len(s))
+		size, err = file.ReadAt(buf, i)
+		buf = buf[:size]
+
+		for err == nil && len(s) > 0 {
+			if bytes.Equal(buf, s) {
+				break
+			}
+
+			i++
+			s = s[:len(s)-1]
+
+			buf = make([]byte, len(s))
+			size, err = file.ReadAt(buf, i)
+			buf = buf[:size]
+		}
+
+		buf = make([]byte, l)
+		size, err = file.ReadAt(buf, i)
+		buf = buf[:size]
+	}
+
+	file.Sync()
+	file.Close()
+
+	if !found {
+		return io.EOF
+	}
+	return nil
+}
+
+// ReplaceRegex replaces a regex match with a new []byte in a file
+//
+// @all: if true, will replace all text matching @re,
+// if false, will only replace the first occurrence
+func ReplaceRegex(name string, re string, rep []byte, all bool, maxReSize ...int64) error {
+	stat, err := os.Stat(name)
+	if err != nil || stat.IsDir() {
+		return err
+	}
+
+	reg, err := regex.CompTry(re)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(name, os.O_RDWR, stat.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var found bool
+
+	l := int64(len(re) * 10)
+	if l < 1024 {
+		l = 1024
+	}
+	for _, maxRe := range maxReSize {
+		if l < maxRe {
+			l = maxRe
+		}
+	}
+
+	i := int64(0)
+
+	buf := make([]byte, l)
+	size, err := file.ReadAt(buf, i)
+	buf = buf[:size]
+	for err == nil {
+		if reg.Match(buf) {
+			found = true
+
+			repRes := reg.RepStr(buf, rep)
+
+			rl := int64(len(repRes))
+			if rl == l {
+				file.WriteAt(repRes, i)
+				file.Sync()
+			}else if rl < l {
+				file.WriteAt(repRes, i)
+				rl = l - rl
+
+				j := i+l
+
+				b := make([]byte, 1024)
+				s, e := file.ReadAt(b, j)
+				b = b[:s]
+
+				for e == nil {
+					file.WriteAt(b, j-rl)
+					j += 1024
+					b = make([]byte, 1024)
+					s, e = file.ReadAt(b, j)
+					b = b[:s]
+				}
+
+				if s != 0 {
+					file.WriteAt(b, j-rl)
+					j += int64(s)
+				}
+
+				file.Truncate(j-rl)
+				file.Sync()
+			}else if rl > l {
+				rl -= l
+
+				dif := int64(1024)
+				if rl > dif {
+					dif = rl
+				}
+
+				j := i+l
+
+				b := make([]byte, dif)
+				s, e := file.ReadAt(b, j)
+				bw := b[:s]
+
+				file.WriteAt(repRes, i)
+				j += rl
+
+				for e == nil {
+					b = make([]byte, dif)
+					s, e = file.ReadAt(b, j+dif-rl)
+				
+					file.WriteAt(bw, j)
+					bw = b[:s]
+
+					j += dif
+				}
+
+				file.WriteAt(bw, j)
+				file.Sync()
+			}
+		}
+
+		i++
+		buf = make([]byte, l)
+		size, err = file.ReadAt(buf, i)
+		buf = buf[:size]
+	}
+
+	if reg.Match(buf) {
+		found = true
+
+		repRes := reg.RepStr(buf, rep)
+
+		rl := int64(len(repRes))
+		if rl == l {
+			file.WriteAt(repRes, i)
+			file.Sync()
+		}else if rl < l {
+			file.WriteAt(repRes, i)
+			rl = l - rl
+
+			j := i+l
+
+			b := make([]byte, 1024)
+			s, e := file.ReadAt(b, j)
+			b = b[:s]
+
+			for e == nil {
+				file.WriteAt(b, j-rl)
+				j += 1024
+				b = make([]byte, 1024)
+				s, e = file.ReadAt(b, j)
+				b = b[:s]
+			}
+
+			if s != 0 {
+				file.WriteAt(b, j-rl)
+				j += int64(s)
+			}
+
+			file.Truncate(j-rl)
+			file.Sync()
+		}else if rl > l {
+			rl -= l
+
+			dif := int64(1024)
+			if rl > dif {
+				dif = rl
+			}
+
+			j := i+l
+
+			b := make([]byte, dif)
+			s, e := file.ReadAt(b, j)
+			bw := b[:s]
+
+			file.WriteAt(repRes, i)
+			j += rl
+
+			for e == nil {
+				b = make([]byte, dif)
+				s, e = file.ReadAt(b, j+dif-rl)
+			
+				file.WriteAt(bw, j)
+				bw = b[:s]
+
+				j += dif
+			}
+
+			file.WriteAt(bw, j)
+			file.Sync()
+		}
+	}
+
+	file.Sync()
+	file.Close()
+
+	if !found {
+		return io.EOF
+	}
+	return nil
+}
+
+// ReplaceRegexFunc replaces a regex match with the result of a callback function in a file
+//
+// @all: if true, will replace all text matching @re,
+// if false, will only replace the first occurrence
+func ReplaceRegexFunc(name string, re string, rep func(data func(int) []byte) []byte, all bool, maxReSize ...int64) error {
+	stat, err := os.Stat(name)
+	if err != nil || stat.IsDir() {
+		return err
+	}
+
+	reg, err := regex.CompTry(re)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(name, os.O_RDWR, stat.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var found bool
+
+	l := int64(len(re) * 10)
+	if l < 1024 {
+		l = 1024
+	}
+	for _, maxRe := range maxReSize {
+		if l < maxRe {
+			l = maxRe
+		}
+	}
+
+	i := int64(0)
+
+	buf := make([]byte, l)
+	size, err := file.ReadAt(buf, i)
+	buf = buf[:size]
+	for err == nil {
+		if reg.Match(buf) {
+			found = true
+
+			repRes := reg.RepFunc(buf, rep)
+
+			rl := int64(len(repRes))
+			if rl == l {
+				file.WriteAt(repRes, i)
+				file.Sync()
+			}else if rl < l {
+				file.WriteAt(repRes, i)
+				rl = l - rl
+
+				j := i+l
+
+				b := make([]byte, 1024)
+				s, e := file.ReadAt(b, j)
+				b = b[:s]
+
+				for e == nil {
+					file.WriteAt(b, j-rl)
+					j += 1024
+					b = make([]byte, 1024)
+					s, e = file.ReadAt(b, j)
+					b = b[:s]
+				}
+
+				if s != 0 {
+					file.WriteAt(b, j-rl)
+					j += int64(s)
+				}
+
+				file.Truncate(j-rl)
+				file.Sync()
+			}else if rl > l {
+				rl -= l
+
+				dif := int64(1024)
+				if rl > dif {
+					dif = rl
+				}
+
+				j := i+l
+
+				b := make([]byte, dif)
+				s, e := file.ReadAt(b, j)
+				bw := b[:s]
+
+				file.WriteAt(repRes, i)
+				j += rl
+
+				for e == nil {
+					b = make([]byte, dif)
+					s, e = file.ReadAt(b, j+dif-rl)
+				
+					file.WriteAt(bw, j)
+					bw = b[:s]
+
+					j += dif
+				}
+
+				file.WriteAt(bw, j)
+				file.Sync()
+			}
+		}
+
+		i++
+		buf = make([]byte, l)
+		size, err = file.ReadAt(buf, i)
+		buf = buf[:size]
+	}
+
+	if reg.Match(buf) {
+		found = true
+
+		repRes := reg.RepFunc(buf, rep)
+
+		rl := int64(len(repRes))
+		if rl == l {
+			file.WriteAt(repRes, i)
+			file.Sync()
+		}else if rl < l {
+			file.WriteAt(repRes, i)
+			rl = l - rl
+
+			j := i+l
+
+			b := make([]byte, 1024)
+			s, e := file.ReadAt(b, j)
+			b = b[:s]
+
+			for e == nil {
+				file.WriteAt(b, j-rl)
+				j += 1024
+				b = make([]byte, 1024)
+				s, e = file.ReadAt(b, j)
+				b = b[:s]
+			}
+
+			if s != 0 {
+				file.WriteAt(b, j-rl)
+				j += int64(s)
+			}
+
+			file.Truncate(j-rl)
+			file.Sync()
+		}else if rl > l {
+			rl -= l
+
+			dif := int64(1024)
+			if rl > dif {
+				dif = rl
+			}
+
+			j := i+l
+
+			b := make([]byte, dif)
+			s, e := file.ReadAt(b, j)
+			bw := b[:s]
+
+			file.WriteAt(repRes, i)
+			j += rl
+
+			for e == nil {
+				b = make([]byte, dif)
+				s, e = file.ReadAt(b, j+dif-rl)
+			
+				file.WriteAt(bw, j)
+				bw = b[:s]
+
+				j += dif
+			}
+
+			file.WriteAt(bw, j)
+			file.Sync()
+		}
+	}
+
+	file.Sync()
+	file.Close()
+
+	if !found {
+		return io.EOF
+	}
+	return nil
+}
+
 
 
 // A watcher instance for the `FS.FileWatcher` method
