@@ -2,7 +2,7 @@ module github.com/AspieSoft/goutil/crypt
 
 go 1.20
 
-require github.com/AspieSoft/go-regex-re2/v2 v2.0.8
+require github.com/AspieSoft/go-regex-re2/v2 v2.1.0
 
 require (
 	github.com/AspieSoft/go-syncterval v1.0.5 // indirect
