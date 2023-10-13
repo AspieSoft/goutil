@@ -1,7 +1,7 @@
-github.com/AspieSoft/go-regex-re2/v2 v2.1.0 h1:bOmknujZ9g9UpkvGz14/PS6q0Tsc45JHFw5tSJ08uBg=
-github.com/AspieSoft/go-regex-re2/v2 v2.1.0/go.mod h1:Zw3j44LzUQPTpUcy5pzjEP20Jh4025LIeqnX8lJWdCg=
 github.com/AspieSoft/go-regex-re2/v2 v2.1.1 h1:P4+tzLDsjUClPIwCQt+p9XsmFxKS4+1Yv0lawFQU3f8=
 github.com/AspieSoft/go-regex-re2/v2 v2.1.1/go.mod h1:Zw3j44LzUQPTpUcy5pzjEP20Jh4025LIeqnX8lJWdCg=
+github.com/AspieSoft/go-regex-re2/v2 v2.1.2 h1:Hl6keRAEW5ua1jfoM0bsXUzxRfIxIWR/itNn75ZtNS0=
+github.com/AspieSoft/go-regex-re2/v2 v2.1.2/go.mod h1:Zw3j44LzUQPTpUcy5pzjEP20Jh4025LIeqnX8lJWdCg=
 github.com/AspieSoft/go-syncterval v1.0.5 h1:fzSNZofSX/7iBkLrWizMzGLGcBl3d+76cHyr8M9tjGg=
 github.com/AspieSoft/go-syncterval v1.0.5/go.mod h1:r+mTZPOWvfS0Y5YAxKINGNt8eX76i2Lib0VeqAw3SW4=
 github.com/AspieSoft/go-ttlcache v1.2.2 h1:U6MMYY5PKANsB4/vhTiQsQ2U/y1P1yqMCxLw+qFNmCo=

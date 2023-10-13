@@ -177,8 +177,12 @@ func ReplaceText(name string, search []byte, rep []byte, all bool) error {
 			}
 
 			if !all {
-				break
+				file.Sync()
+				file.Close()
+				return nil
 			}
+
+			i += l
 		}
 
 		i++
@@ -318,6 +322,14 @@ func ReplaceRegex(name string, re string, rep []byte, all bool, maxReSize ...int
 				file.WriteAt(bw, j)
 				file.Sync()
 			}
+
+			if !all {
+				file.Sync()
+				file.Close()
+				return nil
+			}
+
+			i += int64(len(repRes))
 		}
 
 		i++
@@ -504,6 +516,14 @@ func ReplaceRegexFunc(name string, re string, rep func(data func(int) []byte) []
 				file.WriteAt(bw, j)
 				file.Sync()
 			}
+
+			if !all {
+				file.Sync()
+				file.Close()
+				return nil
+			}
+
+			i += int64(len(repRes))
 		}
 
 		i++

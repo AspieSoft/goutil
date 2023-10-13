@@ -2,7 +2,7 @@ module github.com/AspieSoft/goutil/v7
 
 go 1.18
 
-require github.com/AspieSoft/go-regex-re2/v2 v2.1.1
+require github.com/AspieSoft/go-regex-re2/v2 v2.1.2
 
 require (
 	github.com/AspieSoft/go-syncterval v1.0.5 // indirect
