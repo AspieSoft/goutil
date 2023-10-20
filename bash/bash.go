@@ -25,7 +25,10 @@ func Run(args []string, dir string, env []string, liveOutput ...bool) (output []
 		cmd.Dir = dir
 	}
 	if env != nil {
-		cmd.Env = env
+		if cmd.Env == nil {
+			cmd.Env = []string{}
+		}
+		cmd.Env = append(cmd.Env, env...)
 	}
 	cmd.Stdin = os.Stdin
 	if len(liveOutput) != 0 && liveOutput[0] == true {
@@ -148,7 +151,7 @@ func PipeMultiDir(args ...[]string){
 
 // RunRaw will run an unescaped (unquoted) bash command
 //
-// This used `bash -c` to get around the auto quotes added by golang
+// this used `bash -c` to get around the auto quotes added by golang
 //
 // note: user input is Not recommended for this method
 //
@@ -167,7 +170,10 @@ func RunRaw(cmdStr string, dir string, env []string, liveOutput ...bool) (output
 		cmd.Dir = dir
 	}
 	if env != nil {
-		cmd.Env = env
+		if cmd.Env == nil {
+			cmd.Env = []string{}
+		}
+		cmd.Env = append(cmd.Env, env...)
 	}
 	cmd.Stdin = os.Stdin
 	if len(liveOutput) != 0 && liveOutput[0] == true {

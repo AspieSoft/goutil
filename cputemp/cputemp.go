@@ -57,7 +57,7 @@ func GetTemp() uint {
 //
 // by default, if the temperature > HighTemp, it will wait until the temperature <= LowTemp
 //
-// in strict mode, this will run if temperature
+// in strict mode, this will run if temperature > LowTemp
 //
 // HighTemp = 64
 // LowTemp = 56

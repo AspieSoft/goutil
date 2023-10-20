@@ -3,7 +3,7 @@ module github.com/AspieSoft/goutil/fs/v2
 go 1.20
 
 require (
-	github.com/AspieSoft/go-regex-re2/v2 v2.1.2
+	github.com/AspieSoft/go-regex-re2/v2 v2.2.0
 	github.com/alphadose/haxmap v1.3.0
 	github.com/fsnotify/fsnotify v1.6.0
 )
