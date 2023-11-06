@@ -47,7 +47,7 @@ func GetTemp() uint {
 	}
 
 	temp = math.Round(temp / i)
-	if temp < 0 || temp > 1000 || uint(temp) > 1000 {
+	if temp < 0 || uint(temp) > 1000 {
 		return 0
 	}
 	return uint(temp)
