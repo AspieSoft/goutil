@@ -8,10 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
-	"github.com/alphadose/haxmap"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -611,7 +611,10 @@ func ReplaceRegexFunc(name string, re string, rep func(data func(int) []byte) []
 
 // A watcher instance for the `FS.FileWatcher` method
 type FileWatcher struct {
-	watcherList *haxmap.Map[string, *watcherObj]
+	// watcherList2 *haxmap.Map[string, *watcherObj]
+	watcherList *map[string]*watcherObj
+	mu sync.Mutex
+	size *uint
 
 	// when a file changes
 	//
@@ -638,7 +641,7 @@ type FileWatcher struct {
 	// return false to prevent that directory from no longer being watched
 	OnRemove func(path string, op string) (removeWatcher bool)
 
-	// every time something happenes
+	// every time something happens
 	//
 	// @path: the file path the change happened to
 	//
@@ -652,11 +655,13 @@ type watcherObj struct {
 }
 
 func Watcher() *FileWatcher {
-	return &FileWatcher{watcherList: haxmap.New[string, *watcherObj]()}
+	return &FileWatcher{watcherList: &map[string]*watcherObj{}}
 }
 
 // WatchDir watches the files in a directory and its subdirectories for changes
-func (fw *FileWatcher) WatchDir(root string) error {
+//
+// @nosub: do not watch sub directories
+func (fw *FileWatcher) WatchDir(root string, nosub ...bool) error {
 	var err error
 	if root, err = filepath.Abs(root); err != nil {
 		return err
@@ -669,7 +674,10 @@ func (fw *FileWatcher) WatchDir(root string) error {
 
 	runClose := false
 
-	fw.watcherList.Set(root, &watcherObj{watcher: watcher, close: &runClose})
+	fw.mu.Lock()
+	(*fw.watcherList)[root] = &watcherObj{watcher: watcher, close: &runClose}
+	*fw.size++
+	fw.mu.Unlock()
 
 	go func() {
 		defer watcher.Close()
@@ -708,7 +716,9 @@ func (fw *FileWatcher) WatchDir(root string) error {
 		return err
 	}
 
-	fw.watchDirSub(watcher, root)
+	if len(nosub) == 0 || nosub[0] == false {
+		fw.watchDirSub(watcher, root)
+	}
 
 	return nil
 }
@@ -733,23 +743,25 @@ func (fw *FileWatcher) watchDirSub(watcher *fsnotify.Watcher, dir string){
 //
 // @root pass a file path for a specific watcher or "*" for all watchers that exist
 func (fw *FileWatcher) CloseWatcher(root string) error {
+	fw.mu.Lock()
+	defer fw.mu.Unlock()
+
 	if root == "" || root == "*" {
-		rList := []string{}
-		fw.watcherList.ForEach(func(r string, w *watcherObj) bool {
-			rList = append(rList, r)
+		for r, w := range *fw.watcherList {
 			*w.close = true
-			return true
-		})
-		fw.watcherList.Del(rList...)
+			delete(*fw.watcherList, r)
+			*fw.size--
+		}
 	}else{
 		var err error
 		if root, err = filepath.Abs(root); err != nil {
 			return err
 		}
 
-		if w, ok := fw.watcherList.Get(root); ok {
+		if w, ok := (*fw.watcherList)[root]; ok {
 			*w.close = true
-			fw.watcherList.Del(root)
+			delete(*fw.watcherList, root)
+			*fw.size--
 		}
 	}
 
@@ -758,7 +770,7 @@ func (fw *FileWatcher) CloseWatcher(root string) error {
 
 // Wait for all Watchers to close
 func (fw *FileWatcher) Wait(){
-	for fw.watcherList.Len() != 0 {
-		time.Sleep(100 * time.Nanosecond)
+	for *fw.size != 0 {
+		time.Sleep(100 * time.Millisecond)
 	}
 }
