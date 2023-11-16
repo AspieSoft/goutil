@@ -655,7 +655,8 @@ type watcherObj struct {
 }
 
 func Watcher() *FileWatcher {
-	return &FileWatcher{watcherList: &map[string]*watcherObj{}}
+	size := uint(0)
+	return &FileWatcher{watcherList: &map[string]*watcherObj{}, size: &size}
 }
 
 // WatchDir watches the files in a directory and its subdirectories for changes

@@ -13,4 +13,9 @@ func TestFS(t *testing.T){
 	if val, err := JoinPath("test", "../out/of/root"); err == nil {
 		t.Error("[", val, "]\n", errors.New("JoinPath Method Leaked Outsite The Root"))
 	}
+
+	watcher := Watcher()
+	watcher.WatchDir("./fs")
+	watcher.CloseWatcher("*")
+	watcher.Wait()
 }
