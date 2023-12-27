@@ -326,3 +326,26 @@ func MapArgsByte(args ...[][]byte) map[string][]byte {
 
 	return argMap
 }
+
+/*
+CloneBytes is a simple method for copying a stuborn []byte that wants to be a reference
+
+	golang default:
+		buf := make([]byte, 5)
+		buf = []byte{'t', 'e', 's', 't', '1'}
+		newBuf := buf
+		newBuf[4] = 2
+		string(buf) == string(newBuf)
+
+	using this method:
+		buf := make([]byte, 5)
+		buf = []byte{'t', 'e', 's', 't', '1'}
+		newBuf := goutil.CloneBytes(buf)
+		newBuf[4] = 2
+		string(buf) != string(newBuf)
+*/
+func CloneBytes(b []byte) []byte {
+	buf := make([]byte, len(b))
+	copy(buf, b)
+	return buf
+}
