@@ -71,10 +71,30 @@ func (syncmap *SyncMap[K, V]) Has(key K) bool {
 // in the callback, return true to continue, and false to break the loop
 func (syncmap *SyncMap[K, V]) ForEach(cb func(key K, value V) bool){
 	syncmap.mu.Lock()
-	defer syncmap.mu.Unlock()
+	keyList := []K{}
+	for key := range syncmap.value {
+		keyList = append(keyList, key)
+	}
+	syncmap.mu.Unlock()
+	
+	for _, key := range keyList {
+		syncmap.mu.Lock()
 
-	for k, v := range syncmap.value {
-		if !cb(k, v) {
+		if hasVal, ok := syncmap.hasVal[key]; !ok || !hasVal {
+			delete(syncmap.value, key)
+			delete(syncmap.hasVal, key)
+			syncmap.mu.Unlock()
+			continue
+		}
+
+		var val V
+		if v, ok := syncmap.value[key]; ok {
+			val = v
+		}
+
+		syncmap.mu.Unlock()
+
+		if !cb(key, val) {
 			break
 		}
 	}

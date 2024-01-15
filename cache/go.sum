@@ -2,3 +2,5 @@ github.com/AspieSoft/go-regex-re2/v2 v2.2.0 h1:CK9+SYs7BYy+lV/JrmRbyF+SuTF+e+BIy
 github.com/AspieSoft/go-regex-re2/v2 v2.2.0/go.mod h1:w+vA1zICvB4OQZGY8KdpyMwjwbFXdnZt9iQ7jRR+ycQ=
 github.com/AspieSoft/goutil/v7 v7.5.3 h1:h9Mk/z5r1+2Z4JBp1P44UrN3rIgX94bTAbFeIwhm40Q=
 github.com/AspieSoft/goutil/v7 v7.5.3/go.mod h1:JGAt912jBwFrTXiazla1FTVqSI3zDetUKR5HJb9ND5I=
+github.com/AspieSoft/goutil/v7 v7.6.0 h1:my9iaZniQC6xJdO3zpD888xRDbExVS5tx5Qb6vOoO0o=
+github.com/AspieSoft/goutil/v7 v7.6.0/go.mod h1:JGAt912jBwFrTXiazla1FTVqSI3zDetUKR5HJb9ND5I=

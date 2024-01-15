@@ -235,12 +235,18 @@ func (cache *CacheMap[K, V]) Touch(key K) bool {
 // in the callback, return true to continue, and false to break the loop
 func (cache *CacheMap[K, V]) ForEach(cb func(key K, value V) bool, touch ...bool){
 	cache.mu.Lock()
-	defer cache.mu.Unlock()
+	keyList := []K{}
+	for key := range cache.value {
+		keyList = append(keyList, key)
+	}
+	cache.mu.Unlock()
 
 	now := time.Now()
-	for key, val := range cache.value {
+	for _, key := range keyList {
+		cache.mu.Lock()
 		if _, ok := cache.err[key]; ok {
 			cache.lastUse[key] = now
+			cache.mu.Unlock()
 			continue
 		}
 
@@ -248,8 +254,16 @@ func (cache *CacheMap[K, V]) ForEach(cb func(key K, value V) bool, touch ...bool
 			delete(cache.value, key)
 			delete(cache.err, key)
 			delete(cache.lastUse, key)
+			cache.mu.Unlock()
 			continue
 		}
+
+		var val V
+		if v, ok := cache.value[key]; ok {
+			val = v
+		}
+
+		cache.mu.Unlock()
 
 		if !cb(key, val) {
 			break
