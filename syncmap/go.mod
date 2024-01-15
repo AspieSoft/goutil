@@ -1,6 +1,6 @@
-module github.com/AspieSoft/goutil/cache
+module github.com/AspieSoft/goutil/syncmap
 
-go 1.20
+go 1.21.5
 
 require github.com/AspieSoft/goutil/v7 v7.5.3
 

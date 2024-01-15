@@ -611,7 +611,6 @@ func ReplaceRegexFunc(name string, re string, rep func(data func(int) []byte) []
 
 // A watcher instance for the `FS.FileWatcher` method
 type FileWatcher struct {
-	// watcherList2 *haxmap.Map[string, *watcherObj]
 	watcherList *map[string]*watcherObj
 	mu sync.Mutex
 	size *uint

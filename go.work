@@ -1,13 +1,14 @@
-go 1.20
+go 1.21.5
 
 use (
 	.
-	./compress/gzip
+	./bash
+	./cache
 	./compress/brotli
+	./compress/gzip
 	./compress/smaz
+	./cputemp
 	./crypt
 	./fs
-	./bash
-	./cputemp
-  ./cache
+	./syncmap
 )

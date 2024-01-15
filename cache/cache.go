@@ -16,6 +16,7 @@ type CacheMap[K goutil.Hashable, V any] struct {
 	null V
 }
 
+// NewCache creates a new cache map
 func NewCache[K goutil.Hashable, V any](exp time.Duration) *CacheMap[K, V] {
 	cache := CacheMap[K, V]{
 		value: map[K]V{},
@@ -69,6 +70,59 @@ func NewCache[K goutil.Hashable, V any](exp time.Duration) *CacheMap[K, V] {
 	}()
 
 	return &cache
+}
+
+// NewCacheCB is just like the NewCache method,
+// but it returns the loop in a callback function, to avoid creating more goroutines
+func NewCacheCB[K goutil.Hashable, V any](exp time.Duration) (*CacheMap[K, V], func()) {
+	cache := CacheMap[K, V]{
+		value: map[K]V{},
+		err: map[K]error{},
+		lastUse: map[K]time.Time{},
+		exp: exp,
+	}
+
+	clearFunc := func(){
+		// default: remove cache items have not been accessed in over 2 hours
+		cacheTime := cache.exp
+
+		// SysFreeMemory returns the total free system memory in megabytes
+		mb := goutil.SysFreeMemory()
+		if mb < 200 && mb != 0 {
+			// low memory: remove cache items have not been accessed in over 10 minutes
+			cacheTime = 10 * time.Minute
+		}else if mb < 500 && mb != 0 {
+			// low memory: remove cache items have not been accessed in over 30 minutes
+			cacheTime = 30 * time.Minute
+		}else if mb < 2000 && mb != 0 {
+			// low memory: remove cache items have not been accessed in over 1 hour
+			cacheTime = 1 * time.Hour
+		}else if mb > 64000 {
+			// high memory: remove cache items have not been accessed in over 12 hour
+			cacheTime = 12 * time.Hour
+		}else if mb > 32000 {
+			// high memory: remove cache items have not been accessed in over 6 hour
+			cacheTime = 6 * time.Hour
+		}else if mb > 16000 {
+			// high memory: remove cache items have not been accessed in over 3 hour
+			cacheTime = 3 * time.Hour
+		}
+
+		if cacheTime == 0 {
+			return
+		}
+
+		cache.DelOld(cacheTime)
+
+		time.Sleep(10 * time.Second)
+
+		// clear cache if were still critically low on available memory
+		if mb := goutil.SysFreeMemory(); mb < 10 && mb != 0 {
+			cache.DelOld(0)
+		}
+	}
+
+	return &cache, clearFunc
 }
 
 // Get returns a value or an error if it exists
@@ -156,7 +210,7 @@ func (cache *CacheMap[K, V]) Has(key K) bool {
 	return false
 }
 
-// Has returns true if a key value exists and is not an error
+// Expire sets the ttl for all cache items
 func (cache *CacheMap[K, V]) Expire(exp time.Duration) bool {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
@@ -164,4 +218,41 @@ func (cache *CacheMap[K, V]) Expire(exp time.Duration) bool {
 	cache.exp = exp
 
 	return false
+}
+
+// Touch resets a cache items expiration so it will stay in the cache longer
+func (cache *CacheMap[K, V]) Touch(key K) bool {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	cache.lastUse[key] = time.Now()
+
+	return false
+}
+
+// ForEach runs a callback function for each cache item that has not expired
+//
+// in the callback, return true to continue, and false to break the loop
+func (cache *CacheMap[K, V]) ForEach(cb func(key K, value V) bool, touch ...bool){
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+
+	now := time.Now()
+	for key, val := range cache.value {
+		if _, ok := cache.err[key]; ok {
+			cache.lastUse[key] = now
+			continue
+		}
+
+		if now.UnixNano() - cache.lastUse[key].UnixNano() > int64(cache.exp) {
+			delete(cache.value, key)
+			delete(cache.err, key)
+			delete(cache.lastUse, key)
+			continue
+		}
+
+		if !cb(key, val) {
+			break
+		}
+	}
 }
