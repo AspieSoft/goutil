@@ -22,21 +22,21 @@ import (
   // other optional utility files
 
   // filesystem
-  "github.com/AspieSoft/goutil/v7/fs"
+  "github.com/AspieSoft/goutil/fs/v3"
 
   // encryption
-  "github.com/AspieSoft/goutil/v7/crypt"
+  "github.com/AspieSoft/goutil/crypt"
 
   // compression
-  "github.com/AspieSoft/goutil/v7/compress/gzip"
-  "github.com/AspieSoft/goutil/v7/compress/brotli"
-  "github.com/AspieSoft/goutil/v7/compress/smaz"
+  "github.com/AspieSoft/goutil/compress/gzip"
+  "github.com/AspieSoft/goutil/compress/brotli"
+  "github.com/AspieSoft/goutil/compress/smaz"
 
   // other
-  "github.com/AspieSoft/goutil/v7/compress/bash"
-  "github.com/AspieSoft/goutil/v7/compress/cache"
-  "github.com/AspieSoft/goutil/v7/compress/syncmap"
-  "github.com/AspieSoft/goutil/v7/compress/cputemp"
+  "github.com/AspieSoft/goutil/bash"
+  "github.com/AspieSoft/goutil/cache"
+  "github.com/AspieSoft/goutil/syncmap"
+  "github.com/AspieSoft/goutil/cputemp"
 )
 
 func main(){
