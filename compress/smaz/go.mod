@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/v7/compress/smaz
+module github.com/AspieSoft/goutil/compress/smaz
 
 go 1.20
 

@@ -1,3 +1,3 @@
-module github.com/AspieSoft/goutil/v7/bash
+module github.com/AspieSoft/goutil/bash
 
 go 1.20

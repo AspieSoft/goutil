@@ -1,3 +1,3 @@
-module github.com/AspieSoft/goutil/v7/compress/gzip
+module github.com/AspieSoft/goutil/compress/gzip
 
 go 1.20

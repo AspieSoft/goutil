@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/v7/crypt
+module github.com/AspieSoft/goutil/crypt
 
 go 1.20
 
