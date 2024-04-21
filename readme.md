@@ -93,6 +93,15 @@ func main(){
 
   // wait for all watchers to finish closing
   watcher.Wait()
+
+
+  // loading config files
+  type Config struct{}
+  config = Config{}
+
+  // this method will automatically search for [.yml, .yaml, .json, etc...] files
+  // it allows the user to decide what compatible file type they want to use for their config
+  fs.ReadConfig("path/to/config.yml", &config)
 }
 
 ```
