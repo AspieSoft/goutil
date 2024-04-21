@@ -1,4 +1,4 @@
-module github.com/AspieSoft/goutil/cputemp
+module github.com/AspieSoft/goutil/v7/cputemp
 
 go 1.20
 
