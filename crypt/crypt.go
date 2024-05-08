@@ -1,14 +1,20 @@
 package crypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"errors"
 	"io"
+	"math"
+	"strconv"
+	"time"
 
 	"github.com/AspieSoft/go-regex-re2/v2"
 )
@@ -158,4 +164,114 @@ func RandBytes(size int, exclude ...[]byte) []byte {
 	}
 
 	return b[:size]
+}
+
+var uuidGenLastTime int64
+
+// GenUUID generates a Unique Identifier using a custom build method
+//
+// Notice: This feature is currently in beta
+//
+// @size: (minimum: 8) the bit size for the last part of the uuid
+// (note: other parts may vary)
+//
+// @timezone: optionally add a timezone string to the uuid
+// (note: you could also pass random info into here for a more complex algorithm)
+//
+// This method uses the following data:
+//  - A hash of the current year and day of year
+//  - A hash of the current timezone
+//  - A hash of the current unix time (in seconds)
+//  - A hash of the current unix time in nanoseconds and a random number
+//
+// The returned value is url encoded and will look something like this: xxxx-xxxx-xxxx-xxxxxxxx
+func GenUUID(size int, timezone ...string) string {
+	for time.Now().UnixNano() <= uuidGenLastTime {
+		time.Sleep(1 * time.Millisecond)
+	}
+	uuidGenLastTime = time.Now().UnixNano()
+
+	if size < 8 {
+		size = 8
+	}
+
+	uuid := [][]byte{{}, {}, {}, {}}
+
+	// year
+	{
+		s := int(math.Min(float64(size/4), 8))
+		if s < 4 {
+			s = 4
+		}
+
+		sm := s/2
+		if s % 2 != 0 {
+			sm++
+		}
+
+		b := sha1.Sum([]byte(strconv.Itoa(time.Now().Year())))
+		uuid[0] = []byte(base64.URLEncoding.EncodeToString(b[:]))[:sm]
+		b = sha1.Sum([]byte(strconv.Itoa(time.Now().YearDay())))
+		uuid[0] = append(uuid[0], []byte(base64.URLEncoding.EncodeToString(b[:]))[:sm]...)
+		uuid[0] = uuid[0][:s]
+	}
+
+	// time zone
+	{
+		s := int(math.Min(float64(size/8), 8))
+		if s < 4 {
+			s = 4
+		}
+
+		if len(timezone) != 0 {
+			sm := s/len(timezone)
+			if s % 2 != 0 {
+				sm++
+			}
+
+			for _, zone := range timezone {
+				b := sha1.Sum([]byte(zone))
+				uuid[1] = append(uuid[1], []byte(base64.URLEncoding.EncodeToString(b[:]))[:sm]...)
+			}
+			uuid[1] = uuid[1][:s]
+		}else{
+			z, _ := time.Now().Zone()
+			b := sha1.Sum([]byte(z))
+			uuid[1] = []byte(base64.URLEncoding.EncodeToString(b[:]))[:s]
+		}
+	}
+
+	// unix time
+	{
+		s := int(math.Min(float64(size/2), 16))
+		if s < 4 {
+			s = 4
+		}
+
+		b := sha1.Sum([]byte(strconv.Itoa(int(time.Now().Unix()))))
+		uuid[2] = []byte(base64.URLEncoding.EncodeToString(b[:]))[:s]
+	}
+
+	// random
+	{
+		s := int(math.Min(float64(size/4), 64))
+		if s < 4 {
+			s = 4
+		}
+
+		b := sha512.Sum512([]byte(strconv.Itoa(int(time.Now().UnixNano()))))
+		uuid[3] = []byte(base64.URLEncoding.EncodeToString(b[:]))[:s]
+		uuid[3] = append(uuid[3], []byte(base64.URLEncoding.EncodeToString(RandBytes(size)))[:size-s]...)
+	}
+
+	if len(uuid[1]) == 0 {
+		uuid = append(uuid[:1], uuid[2:]...)
+	}
+
+	for i := range uuid {
+		uuid[i] = bytes.ReplaceAll(uuid[i], []byte{'-'}, []byte{'0'})
+		uuid[i] = bytes.ReplaceAll(uuid[i], []byte{'_'}, []byte{'1'})
+	}
+
+	return string(bytes.Join(uuid, []byte{'-'}))
 }
